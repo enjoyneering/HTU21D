@@ -172,7 +172,7 @@ void HTU21D::setHeater(toggleHeaterSwitch it)
  switch(it)
  {
    case ON:
- 	  userRegisterData |= it;
+      userRegisterData |= it;
    break;
    case OFF:
       userRegisterData &= it;
