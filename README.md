@@ -6,6 +6,7 @@ Supports all sensors features:
 - read Humidity
 - calculate Compensated Humidity
 - read Temperature
+- change Resolution
 - soft Reset
 - check Battery Status
 - turn ON/OFF build-in Heater
