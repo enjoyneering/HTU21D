@@ -260,7 +260,7 @@ float HTU21D::readHumidity(humdOperationMode it)
     Checksum    =   Wire.receive();
   #endif
 
-	if (checkCRC8(rawHumidity) != Checksum)
+  if (checkCRC8(rawHumidity) != Checksum)
   {
     return(0.00);
   }
