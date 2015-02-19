@@ -7,5 +7,5 @@ Supports all sensors features:
 - calculate Compensated Humidity
 - read Temperature
 - Reset
-- check battery Status
+- check Battery Status
 - turn ON/OFF build-in Heater
