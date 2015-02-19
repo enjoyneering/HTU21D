@@ -141,7 +141,7 @@ bool HTU21D::batteryStatus(void)
 
   if (userRegisterData == 0x00)
   {
-  	return true;
+    return true;
   }
 
   return false;
@@ -169,17 +169,17 @@ void HTU21D::setHeater(toggleHeaterSwitch it)
 
   userRegisterData = read8(USER_REGISTER_READ);
 
- switch(it)
- {
-   case ON:
+  switch(it)
+  {
+    case ON:
       userRegisterData |= it;
-   break;
-   case OFF:
+    break;
+    case OFF:
       userRegisterData &= it;
-   break;
+    break;
  }
 
-  write8(USER_REGISTER_WRITE, userRegisterData);
+ write8(USER_REGISTER_WRITE, userRegisterData);
 }
 
 /**************************************************************************/
