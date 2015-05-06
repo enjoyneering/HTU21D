@@ -18,6 +18,19 @@ BSD license, all text above must be included in any redistribution
 #include <Wire.h>
 #include "HTU21D.h"
 
+/*
+HTU21D(resolution)
+
+resolution:
+HTU21D_RES_RH12_TEMP14 - RH: 12Bit, measuring time 16ms. Temperature: 14Bit, measuring time 50ms
+HTU21D_RES_RH8_TEMP12  - RH: 8Bit,  measuring time 8ms.  Temperature: 12Bit, measuring time 25ms
+HTU21D_RES_RH10_TEMP13 - RH: 10Bit, measuring time 5ms.  Temperature: 13Bit, measuring time 13ms.
+HTU21D_RES_RH11_TEMP11 - RH: 11Bit, measuring time 3ms.  Temperature: 11Bit, measuring time 7ms.
+
+
+DEFAULT
+HTU21D(HTU21D_RES_RH12_TEMP14)
+*/
 
 HTU21D myHTU21D;
 
@@ -89,7 +102,7 @@ void loop()
     Serial.println("Battery LOW. Level < 2.25v");
   }
 
-/* UNCOMENT FOR DIAGNOSTIC OF SENSOR'S FUNCTIONALITY. TEMPERATURE SHOULD INCREASE OF 0.5-1.5 deg.C and HUMIDITY DROP
+/* UNCOMENT FOR SENSOR'S FUNCTIONALITY DIAGNOSTIC ONLY. TEMPERATURE SHOULD INCREASE BY 0.5-1.5 deg.C and HUMIDITY DROP
   Serial.println(F(""));
   Serial.println(F(""));
   Serial.println(F("<<DEMO: built-in Heater test>>"));
