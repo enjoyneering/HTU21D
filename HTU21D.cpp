@@ -25,10 +25,10 @@ Temperature Sensor
     Constructor
 */
 /**************************************************************************/
-HTU21D::HTU21D(sensorResolution it)
+HTU21D::HTU21D(HTU21D_Resolution it)
 {
   _HTDU21Dinitialisation = false;
-  _sensorResolution = it;
+  _HTU21D_Resolution = it;
 }
 
 /**************************************************************************/
@@ -57,7 +57,7 @@ bool HTU21D::begin(void)
 
    _HTDU21Dinitialisation = true;
 
-  setResolution(_sensorResolution);
+  setResolution(_HTU21D_Resolution);
   setHeater(OFF);
 
   return true;
@@ -68,7 +68,7 @@ bool HTU21D::begin(void)
     Sets sensor's resolution
 */
 /**************************************************************************/
-void HTU21D::setResolution(sensorResolution it)
+void HTU21D::setResolution(HTU21D_Resolution it)
 {
   uint8_t userRegisterData;
 
@@ -89,7 +89,7 @@ void HTU21D::setResolution(sensorResolution it)
   write8(USER_REGISTER_WRITE, userRegisterData);
 
   /* Update value placeholders */
-  _sensorResolution = it;
+  _HTU21D_Resolution = it;
 }
 
 /**************************************************************************/
@@ -177,9 +177,9 @@ void HTU21D::setHeater(toggleHeaterSwitch it)
     case OFF:
       userRegisterData &= it;
     break;
- }
+  }
 
- write8(USER_REGISTER_WRITE, userRegisterData);
+  write8(USER_REGISTER_WRITE, userRegisterData);
 }
 
 /**************************************************************************/
@@ -219,7 +219,7 @@ float HTU21D::readHumidity(humdOperationMode it)
   }
 
   /* Measurement dalay */
-  switch(_sensorResolution)
+  switch(_HTU21D_Resolution)
   {
     case HTU21D_RES_RH12_TEMP14:
       delay(16);
@@ -249,15 +249,15 @@ float HTU21D::readHumidity(humdOperationMode it)
 
   /* Reads MSB byte, LSB byte & Checksum */
   #if ARDUINO >= 100
-    rawHumidity =   Wire.read();  /* Reads MSB byte */
+    rawHumidity   = Wire.read();  /* Reads MSB byte */
     rawHumidity <<= 8;
-    rawHumidity |=  Wire.read();  /* reads LSB byte and sum. with MSB byte */
-    Checksum    =   Wire.read();
+    rawHumidity  |= Wire.read();  /* reads LSB byte and sum. with MSB byte */
+    Checksum      = Wire.read();
   #else
-    rawHumidity =   Wire.receive();
+    rawHumidity   = Wire.receive();
     rawHumidity <<= 8;
-    rawHumidity |=  Wire.receive();
-    Checksum    =   Wire.receive();
+    rawHumidity  |= Wire.receive();
+    Checksum      = Wire.receive();
   #endif
 
   if (checkCRC8(rawHumidity) != Checksum)
@@ -310,7 +310,7 @@ float HTU21D::readTemperature(tempOperationMode it)
   }
 
   /* Measurement dalay */
-  switch(_sensorResolution)
+  switch(_HTU21D_Resolution)
   {
     case HTU21D_RES_RH12_TEMP14:
       delay(50);
@@ -340,15 +340,15 @@ float HTU21D::readTemperature(tempOperationMode it)
 
   /* Reads MSB byte, LSB byte & Checksum */
    #if ARDUINO >= 100
-    rawTemperature  =   Wire.read(); /* reads MSB byte */
-    rawTemperature  <<= 8;
-    rawTemperature  |=  Wire.read(); /* reads LSB byte and sum. with MSB byte */
-    Checksum        =   Wire.read();
+    rawTemperature   = Wire.read(); /* reads MSB byte */
+    rawTemperature <<= 8;
+    rawTemperature  |= Wire.read(); /* reads LSB byte and sum. with MSB byte */
+    Checksum         = Wire.read();
   #else
-    rawTemperature  =   Wire.receive();
-    rawTemperature  <<= 8;
-    rawTemperature  |=  Wire.receive();
-    Checksum        =   Wire.receive();
+    rawTemperature   = Wire.receive();
+    rawTemperature <<= 8;
+    rawTemperature  |= Wire.receive();
+    Checksum         = Wire.receive();
   #endif
 
   if (checkCRC8(rawTemperature) != Checksum)
@@ -387,6 +387,157 @@ float HTU21D::readCompensatedHumidity(void)
 
   return CompensatedHumidity;
 }
+
+/**************************************************************************/
+/*
+    Read serial number of I2C
+
+    SerialNumber = {SNA_1*, SNA_0*, SNB_3*, SNB_2, SNB_1, SNB_0, SNC_1*, SNC_0}
+
+    * are fixed values
+    SNA_1 = 0x48
+    SNA_0 = 0x54
+    SNB_3 = 0x00
+    SNC_1 = 0x32
+*/
+/**************************************************************************/
+/*
+uint64_t HTU21D::readSerialNumber(void)
+{
+  uint64_t data;
+  uint8_t  Checksum;
+  uint32_t SerialNumber;
+
+
+  Wire.beginTransmission(HTDU21D_ADDRESS);
+  #if ARDUINO >= 100
+    Wire.write(0xFA);
+    Wire.write(0x0F);
+  #else
+    Wire.send(0xFA);
+    Wire.send(0x0F);
+  #endif
+  Wire.endTransmission();
+
+  Wire.requestFrom(HTDU21D_ADDRESS, 8);
+  #if ARDUINO >= 100
+    // Reads SNB_3 byte
+    data     = Wire.read();
+    Checksum = Wire.read();
+    if (checkCRC8(data) == Checksum)
+    {
+      data <<= 35;
+      SerialNumber |= data;
+    }
+    // Reads SNB_2 byte
+    data     = Wire.read();
+    Checksum = Wire.read();
+    if (checkCRC8(data) == Checksum)
+    {
+      data <<= 32;
+      SerialNumber |= data;
+    }
+    // Reads SNB_1 byte
+    data     = Wire.read();
+    Checksum = Wire.read();
+    if (checkCRC8(data) == Checksum)
+    {
+      data <<= 24;
+      SerialNumber |= data;
+    }
+    // Reads SNB_0 byte
+    data     = Wire.read();
+    Checksum = Wire.read();
+    if (checkCRC8(data) == Checksum)
+    {
+      data <<= 16;
+      SerialNumber |= data;
+    }
+  #else
+    data     = Wire.receive();
+    Checksum = Wire.receive();
+    if (checkCRC8(data) == Checksum)
+    {
+      data <<= 35;
+      SerialNumber |= data;
+    }
+    data     = Wire.receive();
+    Checksum = Wire.receive();
+    if (checkCRC8(data) == Checksum)
+    {
+      data <<= 32;
+      SerialNumber |= data;
+    }
+    data     = Wire.receive();
+    Checksum = Wire.receive();
+    if (checkCRC8(data) == Checksum)
+    {
+      data <<= 24;
+      SerialNumber |= data;
+    }
+    data     = Wire.receive();
+    Checksum = Wire.receive();
+    if (checkCRC8(data) == Checksum))
+    {
+      data <<= 16;
+      SerialNumber |= data;
+    }
+  #endif
+
+  Wire.beginTransmission(HTDU21D_ADDRESS);
+  #if ARDUINO >= 100
+    Wire.write(0x1FC);
+    Wire.write(0xC9);
+  #else
+    Wire.send(0x1FC);
+    Wire.send(0xC9);
+  #endif
+  Wire.endTransmission();
+
+  Wire.requestFrom(HTDU21D_ADDRESS, 6);
+  #if ARDUINO >= 100
+    // Reads SNC_1 and SNC_0 byte
+    data     = Wire.read(); 
+    data   <<= 8;
+    data    |= Wire.read();
+    Checksum = Wire.read();
+    if (checkCRC8(data) == Checksum)
+    {
+      SerialNumber |= data;
+    }
+    // Reads SNA_1 and SNA_0 byte
+    data     = Wire.read();
+    data   <<= 8;
+    data    |= Wire.read();
+    Checksum = Wire.read();
+    if (checkCRC8(data) == Checksum)
+    {
+      data <<= 48;
+      SerialNumber |= data;
+    }
+  #else
+    data     = Wire.receive();
+    data16 <<= data;
+    data    |= Wire.receive();
+    Checksum = Wire.receive();
+    if (checkCRC8(data) == Checksum)
+    {
+      SerialNumber |= data;
+    }
+    data     = Wire.receive();
+    data16 <<= data;
+    data    |= Wire.receive();
+    Checksum = Wire.receive();
+    if (checkCRC8(data16) == Checksum)
+    {
+      data <<= 48;
+      SerialNumber |= data;
+    }
+  #endif
+
+  return SerialNumber;
+}
+*/
 
 /**************************************************************************/
 /*
@@ -431,7 +582,7 @@ uint8_t HTU21D::read8(uint8_t reg)
 
 /**************************************************************************/
 /*
-    Calculates Data CRC8 for 16bit received Data
+    Calculates CRC8 for 16 bit received Data
 
     NOTE:
     For more info about Cyclic Redundancy Check (CRC) see:
