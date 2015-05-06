@@ -45,7 +45,7 @@ HTU21D_RES_RH8_TEMP12   = 0x01,  /* RH: 8Bit,  measuring time 8ms.  Temperature:
 HTU21D_RES_RH10_TEMP13  = 0x80,  /* RH: 10Bit, measuring time 5ms.  Temperature: 13Bit, measuring time 13ms.  */
 HTU21D_RES_RH11_TEMP11  = 0x81   /* RH: 11Bit, measuring time 3ms.  Temperature: 11Bit, measuring time 7ms.   */
 }
-sensorResolution;
+HTU21D_Resolution;
 
 typedef enum
 {
@@ -71,13 +71,13 @@ toggleHeaterSwitch;
 class HTU21D
 {
   public:
-  HTU21D(sensorResolution = HTU21D_RES_RH12_TEMP14);
+  HTU21D(HTU21D_Resolution = HTU21D_RES_RH12_TEMP14);
 
   bool    begin(void);
   float   readHumidity(humdOperationMode = TRIGGER_HUMD_MEASURE_HOLD);    //Accuracy +-2%RH     in range 20%RH - 80%RH at 25deg.C only
   float   readCompensatedHumidity(void);                                  //Accuracy +-2%RH     in range 0%RH - 100%RH at range 0deg.C - 80deg.C
   float   readTemperature(tempOperationMode = TRIGGER_TEMP_MEASURE_HOLD); //Accuracy +-0.3deg.C in range 0deg.C - 60deg.C
-  void    setResolution(sensorResolution it);
+  void    setResolution(HTU21D_Resolution it);
   void    softReset(void);
   bool    batteryStatus(void);
   void    setHeater(toggleHeaterSwitch it);
@@ -89,7 +89,7 @@ class HTU21D
 
   bool _HTDU21Dinitialisation;
 
-  sensorResolution  _sensorResolution;
+  HTU21D_Resolution  _HTU21D_Resolution;
 };
 
 #endif
