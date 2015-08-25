@@ -1,5 +1,5 @@
 # HTU21D
-This is an Arduino library for SHT21 and HTU21D Digital Humidity and Temperature Sensor
+This is an Arduino library for SHT21, HTU21D and Si7021 Digital Humidity and Temperature Sensor
 
 Supports all sensors features:
 
