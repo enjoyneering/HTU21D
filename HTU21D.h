@@ -37,6 +37,16 @@ Temperature Sensor
 #define TEMP_COEFFICIENT    -0.15   /* Temperature coefficient (from 0deg.C to 80deg.C) */
 #define CRC8_POLYNOMINAL    0x13100 /* CRC8 polynomial for 16bit CRC8 x^8 + x^5 + x^4 + 1 */
 
+#define HUT21D_WAITING		-1
+#define HUT21D_ERROR		-1
+#define HUT21D_OK			0
+
+typedef enum
+{
+	inactive,
+	readingHumidity,
+	readingTemperature
+} HUT21D_ReadState;
 
 typedef enum
 {
@@ -74,6 +84,9 @@ class HTU21D
   HTU21D(HTU21D_Resolution = HTU21D_RES_RH12_TEMP14);
 
   bool    begin(void);
+  void    startReadHumidity(void);
+  void	  startReadTemperature(void);
+  uint8_t completeRead(void);
   float   readHumidity(humdOperationMode = TRIGGER_HUMD_MEASURE_HOLD);    //Accuracy +-2%RH     in range 20%RH - 80%RH at 25deg.C only
   float   readCompensatedHumidity(void);                                  //Accuracy +-2%RH     in range 0%RH - 100%RH at range 0deg.C - 80deg.C
   float   readTemperature(tempOperationMode = TRIGGER_TEMP_MEASURE_HOLD); //Accuracy +-0.3deg.C in range 0deg.C - 60deg.C
@@ -82,12 +95,18 @@ class HTU21D
   bool    batteryStatus(void);
   void    setHeater(toggleHeaterSwitch it);
 
+  float   humidityValue;
+  float   temperatureValue;
+
   private:
   void     write8 (uint8_t reg, uint32_t value);
   uint8_t  read8 (uint8_t reg);
   uint8_t  checkCRC8(uint16_t data);
 
   bool _HTDU21Dinitialisation;
+  
+  HUT21D_ReadState _state;
+  unsigned long _tm;
 
   HTU21D_Resolution  _HTU21D_Resolution;
 };

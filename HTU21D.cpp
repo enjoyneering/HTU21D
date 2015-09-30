@@ -29,6 +29,9 @@ HTU21D::HTU21D(HTU21D_Resolution it)
 {
   _HTDU21Dinitialisation = false;
   _HTU21D_Resolution = it;
+  _state = inactive;
+  temperatureValue = -9999.0;
+  humidityValue = -9999.0;
 }
 
 /**************************************************************************/
@@ -180,6 +183,136 @@ void HTU21D::setHeater(toggleHeaterSwitch it)
   }
 
   write8(USER_REGISTER_WRITE, userRegisterData);
+}
+
+/**************************************************************************/
+/*
+Start an NoHold Reads Humidity, %RH
+
+Max. measurement time about 16ms.
+Accuracy +-2%RH in range 20%RH - 80%RH at 25deg.C only
+
+*/
+/**************************************************************************/
+void HTU21D::startReadTemperature()
+{
+	uint8_t   Checksum;
+	uint8_t   pollCounter;
+	uint16_t  rawHumidity;
+	float     Humidity;
+
+	if (_state != inactive)
+	{
+		return;
+	}
+	/* Request a humidity reading */
+	Wire.beginTransmission(HTDU21D_ADDRESS);
+	Wire.write(TRIGGER_TEMP_MEASURE_NOHOLD);
+	if (Wire.endTransmission() != 0)
+	{
+		return;
+	}
+	_state = readingTemperature;
+	_tm = millis();
+
+	return;
+}
+
+
+/**************************************************************************/
+/*
+Start an NoHold Reads Humidity, %RH
+
+Max. measurement time about 16ms.
+Accuracy +-2%RH in range 20%RH - 80%RH at 25deg.C only
+
+*/
+/**************************************************************************/
+void HTU21D::startReadHumidity()
+{
+	uint8_t   Checksum;
+	uint8_t   pollCounter;
+	uint16_t  rawHumidity;
+	float     Humidity;
+
+	if (_state != inactive)
+	{
+		return;
+	}
+	/* Request a humidity reading */
+	Wire.beginTransmission(HTDU21D_ADDRESS);
+	Wire.write(TRIGGER_HUMD_MEASURE_NOHOLD);
+	if (Wire.endTransmission() != 0)
+	{
+		return;
+	}
+	_state = readingHumidity;
+	_tm = millis();
+
+	return;
+}
+/**************************************************************************/
+/*
+Check if data is ready and get it
+
+Return	HUT21D_OK if new data
+		HUT21D_ERROR if no response or error
+		HUT21D_WAITING if waiting for conversion
+*/
+/**************************************************************************/
+uint8_t HTU21D::completeRead(void)
+{
+	uint8_t   Checksum;
+	uint16_t  rawValue;
+	float     cvalue;
+
+	if (_state == inactive)
+	{
+		return HUT21D_OK;
+	}
+
+
+	/* poll to check the end of the measurement */
+	Wire.requestFrom(HTDU21D_ADDRESS, 3);
+	if (Wire.available() < 3)
+	{
+		if (millis()-_tm > 50)
+		{
+			_state = inactive;
+			return HUT21D_ERROR;
+		}
+		return HUT21D_WAITING;
+	}
+
+	/* Reads MSB byte, LSB byte & Checksum */
+	rawValue = Wire.read();  /* Reads MSB byte */
+	rawValue <<= 8;
+	rawValue |= Wire.read();  /* reads LSB byte and sum. with MSB byte */
+	Checksum = Wire.read();
+
+	if (checkCRC8(rawValue) != Checksum)
+	{
+		_state = inactive;
+		return HUT21D_ERROR;
+	}
+
+	if (_state==readingHumidity)
+	{
+		/* clear two last status bits */
+		rawValue ^=  0x02;
+		humidityValue = -6 + 0.00190735 * (float)rawValue;
+		if (temperatureValue > -9999.0) {
+			humidityValue = humidityValue + (25 - temperatureValue) * TEMP_COEFFICIENT;
+		}
+	}
+	if (_state==readingTemperature)
+	{
+		temperatureValue = -46.85 + 0.00268127 * (float)rawValue;
+	}
+
+	_state = inactive;
+	return HUT21D_OK;
+
 }
 
 /**************************************************************************/
