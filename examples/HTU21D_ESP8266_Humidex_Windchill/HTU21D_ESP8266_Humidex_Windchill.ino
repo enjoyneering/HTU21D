@@ -175,7 +175,7 @@ void loop()
   Serial.print("Humidex/Feels like..: "); Serial.print(humidex);     Serial.print("C, ");  HumidexDiscomfortIndex(humidex);
   Serial.print("Windchill/Feels like: "); Serial.print(windchill);   Serial.print("C, ");  WindchillDiscomfortIndex(humidex);
 
-  delay(10000);
+  delay(20000);
 }
  
 /* dew point calculation */
