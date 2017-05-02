@@ -72,7 +72,7 @@
 #define HTU21D_TEMP_COEFFICIENT      -0.15   //Temperature coefficient for RH measurement, for HTU21D & SHT21 at range 0C..80C only
 #define HTU21D_CRC8_POLYNOMINAL      0x13100 //CRC8 polynomial for 16bit CRC8 x^8 + x^5 + x^4 + 1
 
-#define HTU21D_ERROR                 0xFF    //returns 255, if CRC8 or communication error is occurred
+#define HTU21D_ERROR                 0xFF    //Returns 255, if CRC8 or communication error is occurred
 
 typedef enum
 {
