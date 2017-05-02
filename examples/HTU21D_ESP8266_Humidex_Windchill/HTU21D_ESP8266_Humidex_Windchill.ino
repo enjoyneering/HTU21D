@@ -88,7 +88,7 @@ void setup()
   lcd.createChar(1, humidity_icon);
 
   /* prints static text */
-  lcd.setCursor(0, 0);                                                  //after clear for custom char need setCursor()
+  lcd.setCursor(0, 0);
   lcd.write((uint8_t)0);                                                //print custom tempereture symbol
 
   lcd.setCursor(10, 0);                                                 //set 11-th colum & 2-nd row. NOTE: first colum & row started at zero
@@ -103,7 +103,6 @@ void setup()
   lcd.setCursor(0, 3);
   lcd.print("Winchill:");
 }
-
 
 void loop()
 {
