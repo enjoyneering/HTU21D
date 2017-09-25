@@ -7,14 +7,15 @@
 
   This sensor uses I2C bus to communicate, specials pins are required to interface
 
-  Connect sensor to pins:  SDA     SCL
-  Uno, Mini, Pro:          A4      A5
-  Mega2560, Due:           20      21
-  Leonardo:                2       3
-  ATtiny85:                0(5)    2/A1(7) (ATTinyCore  - https://github.com/SpenceKonde/ATTinyCore
-                                            & TinyWireM - https://github.com/SpenceKonde/TinyWireM)
-  ESP8266 ESP-xx:          ANY     ANY     (ESP8266Core - https://github.com/esp8266/Arduino)
-  NodeMCU 1.0:             ANY     ANY     (D2 & D1 by default)
+  Connect chip to pins:    SDA        SCL
+  Uno, Mini, Pro:          A4         A5
+  Mega2560, Due:           20         21
+  Leonardo:                2          3
+  ATtiny85:                0(5)       2/A1(7)   (ATTinyCore  - https://github.com/SpenceKonde/ATTinyCore
+                                                 & TinyWireM - https://github.com/SpenceKonde/TinyWireM)
+  ESP8266 ESP-01:          GPIO0/D5   GPIO2/D3  (ESP8266Core - https://github.com/esp8266/Arduino)
+  NodeMCU 1.0:             GPIO4/D2   GPIO5/D1
+  WeMos D1 Mini:           GPIO4/D2   GPIO5/D1
 
   BSD license, all text above must be included in any redistribution
 */
@@ -28,9 +29,9 @@
     Constructor
 */
 /**************************************************************************/
-HTU21D::HTU21D(HTU21D_Resolution sensorResolution)
+HTU21D::HTU21D(HTU21D_RESOLUTION sensorResolution)
 {
-  _HTU21D_Resolution = sensorResolution;
+  _resolution = sensorResolution;
 }
 
 /**************************************************************************/
@@ -49,23 +50,26 @@ HTU21D::HTU21D(HTU21D_Resolution sensorResolution)
 #if defined(ESP8266)
 bool HTU21D::begin(uint8_t sda, uint8_t scl)
 {
-  delay(250);                             //to compesate glitch if more than one library call Wire.begin() one after another
   Wire.begin(sda, scl);
-  Wire.setClockStretchLimit(230);         //experimental! 150, default 230
+  Wire.setClock(100000UL);                //experimental! ESP8266 i2c bus speed: 100kHz..400kHz/100000UL..400000UL, default 100000UL
+  Wire.setClockStretchLimit(230);         //experimental! default 230
 #else
 bool HTU21D::begin(void) 
 {
   Wire.begin();
+  Wire.setClock(400000UL);                //experimental! AVR i2c bus speed: 31kHz..400kHz/31000UL..400000UL, default 100000UL
 #endif
-  Wire.setClock(400000UL);                //experimental! i2c bus speed: AVR 31kHz..400kHz/31000UL..400000UL, ESP8266 100kHz..400kHz/100000UL..400000UL
-  Wire.beginTransmission(HTU21D_ADDRESS);
 
+  Wire.beginTransmission(HTU21D_ADDRESS);
   if (Wire.endTransmission(true) != 0)    //safety check - make sure the sensor is connected
   {
+    #ifdef HTU21D_DEBUG_INFO
+    Serial.println("HTU21D: can't find the sensor on the bus");
+    #endif
     return false;
   }
 
-  setResolution(_HTU21D_Resolution);
+  setResolution(_resolution);
   setHeater(HTU21D_OFF);
   return true;
 }
@@ -75,17 +79,17 @@ bool HTU21D::begin(void)
     Sets sensor's resolution
 */
 /**************************************************************************/
-void HTU21D::setResolution(HTU21D_Resolution sensorResolution)
+void HTU21D::setResolution(HTU21D_RESOLUTION sensorResolution)
 {
   uint8_t userRegisterData = 0;
 
-  userRegisterData  = read8(HTU21D_USER_REGISTER_READ);  //reads current register state
-  userRegisterData &= 0x7E;                              //clears current resolution bits with "0"
-  userRegisterData |= sensorResolution;                  //adds new resolution bits to userRegisterData
+  userRegisterData  = read8(HTU21D_USER_REGISTER_READ); //reads current register state
+  userRegisterData &= 0x7E;                             //clears current resolution bits with "0"
+  userRegisterData |= sensorResolution;                 //adds new resolution bits to userRegisterData
 
-  write8(HTU21D_USER_REGISTER_WRITE, userRegisterData);  //writes updeted register values to sensor
+  write8(HTU21D_USER_REGISTER_WRITE, userRegisterData); //writes updeted register values to sensor
 
-  _HTU21D_Resolution = sensorResolution;                 //updates private variable
+  _resolution = sensorResolution;                       //updates private variable
 }
 
 /**************************************************************************/
@@ -99,15 +103,28 @@ void HTU21D::setResolution(HTU21D_Resolution sensorResolution)
 /**************************************************************************/
 void HTU21D::softReset(void)
 {
-  Wire.beginTransmission(HTU21D_ADDRESS);
-  #if ARDUINO >= 100
-  Wire.write(HTU21D_SOFT_RESET);
-  #else
-  Wire.send(HTU21D_SOFT_RESET);
-  #endif
-  Wire.endTransmission(true);
+  uint8_t pollCounter = HTU21D_POLL_LIMIT;
 
-  delay(15);
+  do
+  {
+    Wire.beginTransmission(HTU21D_ADDRESS);
+    #if ARDUINO >= 100
+    Wire.write(HTU21D_SOFT_RESET);
+    #else
+    Wire.send(HTU21D_SOFT_RESET);
+    #endif
+    pollCounter--;
+  }
+  while (Wire.endTransmission(true) != 0 || pollCounter > 0);
+
+  if (pollCounter == 0)                                       //error handler
+  {
+    #ifdef HTU21D_DEBUG_INFO
+    Serial.println("HTU21D: can't send soft reset command");
+    #endif
+  }
+
+  delay(HTU21D_SOFT_RESET_DELAY);
 }
 
 /**************************************************************************/
@@ -150,7 +167,7 @@ bool HTU21D::batteryStatus(void)
           the internal temperature sensor).
 */
 /**************************************************************************/
-void HTU21D::setHeater(HTU21D_toggleHeaterSwitch heaterSwitch)
+void HTU21D::setHeater(HTU21D_HEATER_SWITCH heaterSwitch)
 {
   uint8_t userRegisterData = 0;
 
@@ -184,73 +201,97 @@ void HTU21D::setHeater(HTU21D_toggleHeaterSwitch heaterSwitch)
           - Max. possible measurement time ~32ms
           - Suggested min time between measurements is 17 sec. - 18 sec.
             (sensor could faster but it's pointless)
+          - endTransmission()
+            0 - success
+            1 - data too long to fit in transmit data16
+            2 - received NACK on transmit of address
+            3 - received NACK on transmit of data
+            4 - can't start, line busy
 */
 /**************************************************************************/
-float HTU21D::readHumidity(HTU21D_humdOperationMode sensorOperationMode)
+float HTU21D::readHumidity(HTU21D_HUMD_OPERATION_MODE sensorOperationMode)
 {
-  uint8_t  pollCounter = 8;
+  uint8_t  pollCounter = HTU21D_POLL_LIMIT;
   uint8_t  checksum    = 0;
   uint16_t rawHumidity = 0;
   float    humidity    = 0;
 
-  /* request a humidity measurement */
-  Wire.beginTransmission(HTU21D_ADDRESS);
-  #if ARDUINO >= 100
-  Wire.write(sensorOperationMode);
-  #else
-  Wire.send(sensorOperationMode);
-  #endif
-  Wire.endTransmission(true);
+  /* request humidity measurement */
+  do
+  {
+    Wire.beginTransmission(HTU21D_ADDRESS);
+    #if ARDUINO >= 100
+    Wire.write(sensorOperationMode);
+    #else
+    Wire.send(sensorOperationMode);
+    #endif
+    pollCounter--;
+  }
+  while (Wire.endTransmission(true) != 0 || pollCounter > 0); //true = stop message after transmission & releas the I2C bus
+
+  if (pollCounter == 0)                                       //error handler
+  {
+    #ifdef HTU21D_DEBUG_INFO
+    Serial.println("HTU21D: can't send humidity measurement command");
+    #endif
+    return HTU21D_ERROR;
+  }
 
   /* humidity measurement delay */
-  switch(_HTU21D_Resolution)
+  switch(_resolution)
   {
     case HTU21D_RES_RH12_TEMP14:
-      delay(16);                                      //Si7021 - 17..23msec, SHT21 - 22..29msec
+      delay(16);                                              //Si7021 - 17..23msec, SHT21 - 22..29msec
       break;
     case HTU21D_RES_RH8_TEMP12:
-      delay(3);                                       //Si7021 - 5..7msec,   SHT21 - 3..4msec
+      delay(3);                                               //Si7021 - 5..7msec,   SHT21 - 3..4msec
       break;
     case HTU21D_RES_RH10_TEMP13:
-      delay(5);                                       //Si7021 - 8..11msec,  SHT21 - 7..9msec
+      delay(5);                                               //Si7021 - 8..11msec,  SHT21 - 7..9msec
       break;
     case HTU21D_RES_RH11_TEMP11:
-      delay(8);                                       //HTU21 - 8..10msec,   SHT21 - 12..15msec
+      delay(8);                                               //HTU21 - 8..10msec,   SHT21 - 12..15msec
       break;
   }
 
-  Wire.requestFrom(HTU21D_ADDRESS, 3);
-  /* poll to check the end of the measurement, bacause Si7021 & SHT21 are slower than HTU21D */
-  while (Wire.available() != 3)
+  pollCounter = HTU21D_POLL_LIMIT;
+
+  do
   {
+    if (pollCounter < (HTU21D_POLL_LIMIT - 1)) delay(8);      //bacause Si7021 & SHT21 is slower than HTU21D
+    Wire.requestFrom(HTU21D_ADDRESS, 3, true);                //true = stop message after transmission & releas the I2C bus
     pollCounter--;
-    if (pollCounter > 0)
-    {
-      delay(8);
-    }
-    else
-    {
-      Wire.endTransmission(true);                     //true - sends a stop message after transmission & releas the I2C bus
-      return HTU21D_ERROR;
-    }
+  }
+  while (Wire.available() != 3 || pollCounter > 0);           //check rxBuffer
+
+  if (pollCounter == 0)                                       //error handler
+  {
+    #ifdef HTU21D_DEBUG_INFO
+    Serial.println("HTU21D: can't read humidity measurement result");
+    #endif
+    return HTU21D_ERROR;
   }
 
-  /* reads MSB byte, LSB byte & Checksum */
+  /* reads MSB byte, LSB byte & Checksum from "wire.h" buffer */
   #if ARDUINO >= 100
-  rawHumidity  = Wire.read() << 8;                    //reads MSB byte & shift it to the right
-  rawHumidity |= Wire.read();                         //reads LSB byte & sum. with MSB byte
-  checksum     = Wire.read();                         //checksum
+  rawHumidity  = Wire.read() << 8;                            //reads MSB byte & shift it to the right
+  rawHumidity |= Wire.read();                                 //reads LSB byte & sum. with MSB byte
+  checksum     = Wire.read();                                 //checksum
   #else
   rawHumidity  = Wire.receive() << 8;
   rawHumidity |= Wire.receive();
   checksum     = Wire.receive();
   #endif
-  if (Wire.endTransmission(true) != 0 || checkCRC8(rawHumidity) != checksum)
+
+  if (checkCRC8(rawHumidity) != checksum)                     //error handler
   {
+    #ifdef HTU21D_DEBUG_INFO
+    Serial.println("HTU21D: humidity CRC8 doesn't match");
+    #endif
     return HTU21D_ERROR;
   }
 
-  rawHumidity ^= 0x02;                                //clear status bits, humidity measurement always returns xxxxxx10 in the LSB field
+  rawHumidity ^= 0x02;                                        //clear status bits, humidity measurement always returns xxxxxx10 in the LSB field
   humidity     = 0.001907 * (float)rawHumidity - 6;
   
   if (humidity < 0)
@@ -283,79 +324,100 @@ float HTU21D::readHumidity(HTU21D_humdOperationMode sensorOperationMode)
           - Max. possible measurement time ~91ms
           - Suggested min time between measurements is 17 sec. - 18 sec.
             (sensor could faster but it's pointless)
+          - endTransmission()
+            0 - success
+            1 - data too long to fit in transmit data16
+            2 - received NACK on transmit of address
+            3 - received NACK on transmit of data
+            4 - can't start, line busy
 */
 /**************************************************************************/
-float HTU21D::readTemperature(HTU21D_tempOperationMode sensorOperationMode)
+float HTU21D::readTemperature(HTU21D_TEMP_OPERATION_MODE sensorOperationMode)
 {
-  uint8_t  pollCounter    = 8;
+  uint8_t  pollCounter    = HTU21D_POLL_LIMIT;
   uint8_t  checksum       = 0;
   uint16_t rawTemperature = 0;
   float    temperature    = 0;
 
-  /* request a temperature measurement or reading */
-  Wire.beginTransmission(HTU21D_ADDRESS);
-  #if ARDUINO >= 100
-  Wire.write(sensorOperationMode); 
-  #else
-  Wire.send(sensorOperationMode);
-  #endif
-  Wire.endTransmission(true);
-
-  if (sensorOperationMode == SI70xx_TEMP_READ_AFTER_RH_MEASURMENT)
+  /* request temperature measurement */
+  do
   {
-    goto skipMeasurementDelay;
+    Wire.beginTransmission(HTU21D_ADDRESS);
+    #if ARDUINO >= 100
+    Wire.write(sensorOperationMode); 
+    #else
+    Wire.send(sensorOperationMode);
+    #endif
+    pollCounter--;
+  }
+  while (Wire.endTransmission(true) != 0 || pollCounter > 0);    //true = stop message after transmission & releas the I2C bus
+
+  if (pollCounter == 0)                                          //error handler
+  {
+    #ifdef HTU21D_DEBUG_INFO
+    Serial.println("HTU21D: can't send temperature measurement command");
+    #endif
+    return HTU21D_ERROR;
   }
 
   /* temperature measurement delay */
-  switch(_HTU21D_Resolution)
+  if (sensorOperationMode != SI70xx_TEMP_READ_AFTER_RH_MEASURMENT)
   {
-    case HTU21D_RES_RH12_TEMP14:
-      delay(11);                                                   //HTU21D - 44..50msec, SHT21 - 66..85msec
-      break;
-    case HTU21D_RES_RH8_TEMP12:
-      delay(4);                                                    //HTU21D - 11..13msec, SHT21 - 17..22msec
-      break;
-    case HTU21D_RES_RH10_TEMP13:
-      delay(7);                                                    //Si7021 - 22..25msec, SHT21 - 33..43msec
-      break;
-    case HTU21D_RES_RH11_TEMP11:
-      delay(3);                                                    //Si7021 - 6..7msec, SHT21 - 9..11msec
-      break;
+    switch(_resolution)
+    {
+      case HTU21D_RES_RH12_TEMP14:
+        delay(11);                                               //HTU21D - 44..50msec, SHT21 - 66..85msec
+        break;
+      case HTU21D_RES_RH8_TEMP12:
+        delay(4);                                                //HTU21D - 11..13msec, SHT21 - 17..22msec
+        break;
+      case HTU21D_RES_RH10_TEMP13:
+        delay(7);                                                //Si7021 - 22..25msec, SHT21 - 33..43msec
+        break;
+      case HTU21D_RES_RH11_TEMP11:
+        delay(3);                                                //Si7021 - 6..7msec, SHT21 - 9..11msec
+        break;
+    }
   }
 
- skipMeasurementDelay:
-  Wire.requestFrom(HTU21D_ADDRESS, 3);
-  /* poll to check the end of the measurement, bacause HTU21D & SHT21 are slower than Si7021 */
-  while (Wire.available() != 3)
+  pollCounter = HTU21D_POLL_LIMIT;
+
+  do
   {
+    if (pollCounter < (HTU21D_POLL_LIMIT - 1)) delay(16);        //bacause HTU21D & SHT21 is slower than Si7021
+    Wire.requestFrom(HTU21D_ADDRESS, 3, true);                   //true = stop message after transmission & releas the I2C bus
     pollCounter--;
-    if (pollCounter > 0)
-    {
-      delay(16);
-    }
-    else
-    {
-      Wire.endTransmission(true);
-      return HTU21D_ERROR;
-    }
+  }
+  while (Wire.available() != 3 || pollCounter > 0);              //check rxBuffer
+
+  if (pollCounter == 0)                                          //error handler
+  {
+    #ifdef HTU21D_DEBUG_INFO
+    Serial.println("HTU21D: can't read temperature measurement result");
+    #endif
+    return HTU21D_ERROR;
   }
 
-  /* reads MSB byte, LSB byte & Checksum */
+  /* reads MSB byte, LSB byte & Checksum from "wire.h" buffer */
   #if ARDUINO >= 100
-  rawTemperature  = Wire.read() << 8;                              //reads MSB byte & shift it to the right
-  rawTemperature |= Wire.read();                                   //reads LSB byte and sum. with MSB byte
+  rawTemperature  = Wire.read() << 8;                            //reads MSB byte & shift it to the right
+  rawTemperature |= Wire.read();                                 //reads LSB byte and sum. with MSB byte
   checksum        = Wire.read();
   #else
   rawTemperature  = Wire.receive() << 8;
   rawTemperature |= Wire.receive();
   checksum        = Wire.receive();
   #endif
-  if (Wire.endTransmission(true) != 0 || checkCRC8(rawTemperature) != checksum)
+
+  if (checkCRC8(rawTemperature) != checksum)                     //error handler
   {
+    #ifdef HTU21D_DEBUG_INFO
+    Serial.println("HTU21D: humidity CRC8 doesn't match");
+    #endif
     return HTU21D_ERROR;
   }
 
-  return temperature = 0.002681 * (float)rawTemperature - 46.85;   //temperature measurement always returns xxxxxx00 in the LSB field
+  return temperature = 0.002681 * (float)rawTemperature - 46.85; //temperature measurement always returns xxxxxx00 in the LSB field
 }
 
 /**************************************************************************/
@@ -380,7 +442,7 @@ float HTU21D::readCompensatedHumidity(void)
   humidity    = readHumidity();
   temperature = readTemperature();
 
-  if (humidity == HTU21D_ERROR || temperature == HTU21D_ERROR)
+  if (humidity == HTU21D_ERROR || temperature == HTU21D_ERROR)          //error handler
   {
     return HTU21D_ERROR;
   }
@@ -409,8 +471,8 @@ float HTU21D::readCompensatedHumidity(void)
 /**************************************************************************/
 uint16_t HTU21D::readDeviceID(void)
 {
-  uint16_t deviceID = 0;
-  uint8_t  checksum = 0;
+  uint16_t deviceID   = 0;
+  uint8_t  checksum   = 0;
 
   /* Serial_2 requests SNB3**, SNB2, SNB1, SNB0 */
   Wire.beginTransmission(HTU21D_ADDRESS);
@@ -424,7 +486,7 @@ uint16_t HTU21D::readDeviceID(void)
   Wire.endTransmission(true);
 
   /* Serial_2 reads SNB3**, SNB2 & CRC */
-  Wire.requestFrom(HTU21D_ADDRESS, 3);
+  Wire.requestFrom(HTU21D_ADDRESS, 3, true); //true = stop message after transmission & releas the I2C bus
   #if ARDUINO >= 100
   deviceID  = Wire.read() << 8;
   deviceID |= Wire.read();
@@ -434,8 +496,11 @@ uint16_t HTU21D::readDeviceID(void)
   deviceID |= Wire.receive();
   checksum  = Wire.receive();
   #endif
-  if (Wire.endTransmission(true) != 0 || checkCRC8(deviceID) != checksum)
+  if (checkCRC8(deviceID) != checksum)
   {
+    #ifdef HTU21D_DEBUG_INFO
+    Serial.println("HTU21D: device ID CRC8 doesn't match");
+    #endif
     return HTU21D_ERROR;
   }
 
@@ -472,7 +537,7 @@ uint16_t HTU21D::readDeviceID(void)
 uint8_t HTU21D::readFirmwareVersion(void)
 {
   uint8_t firmwareVersion = 0;
- 
+
   Wire.beginTransmission(HTU21D_ADDRESS);
   #if ARDUINO >= 100
   Wire.write(HTU21D_FIRMWARE_READ1);
@@ -483,16 +548,12 @@ uint8_t HTU21D::readFirmwareVersion(void)
   #endif
   Wire.endTransmission(true);
 
-  Wire.requestFrom(HTU21D_ADDRESS, 1);
+  Wire.requestFrom(HTU21D_ADDRESS, 1, true); //true = stop message after transmission & releas the I2C bus
   #if ARDUINO >= 100
   firmwareVersion = Wire.read();
   #else
   firmwareVersion = Wire.read();
   #endif
-  if (Wire.endTransmission(true) != 0)
-  {
-    return HTU21D_ERROR;
-  }
 
   switch(firmwareVersion)
   {
@@ -516,15 +577,28 @@ uint8_t HTU21D::readFirmwareVersion(void)
 /**************************************************************************/
 void HTU21D::write8(uint8_t reg, uint8_t value)
 {
-  Wire.beginTransmission(HTU21D_ADDRESS);
-  #if ARDUINO >= 100
-  Wire.write(reg);
-  Wire.write(value);
-  #else
-  Wire.send(reg);
-  Wire.send(value);
-  #endif
-  Wire.endTransmission(true);
+  uint8_t pollCounter = HTU21D_POLL_LIMIT;
+
+  do
+  {
+    Wire.beginTransmission(HTU21D_ADDRESS);
+    #if ARDUINO >= 100
+    Wire.write(reg);
+    Wire.write(value);
+    #else
+    Wire.send(reg);
+    Wire.send(value);
+    #endif
+    pollCounter--;
+  }
+  while (Wire.endTransmission(true) != 0 || pollCounter > 0);
+
+  if (pollCounter == 0)                                       //error handler
+  {
+    #ifdef HTU21D_DEBUG_INFO
+    Serial.println("HTU21D: can't write a byte");
+    #endif
+  }
 }
 
 /**************************************************************************/
@@ -534,25 +608,51 @@ void HTU21D::write8(uint8_t reg, uint8_t value)
 /**************************************************************************/
 uint8_t HTU21D::read8(uint8_t reg)
 {
-  uint8_t value = 0;
+  uint8_t pollCounter = HTU21D_POLL_LIMIT;
 
-  Wire.beginTransmission(HTU21D_ADDRESS);
+  do
+  {
+    Wire.beginTransmission(HTU21D_ADDRESS);
+    #if ARDUINO >= 100
+    Wire.write(reg);
+    #else
+    Wire.send(reg);
+    #endif
+    pollCounter--;
+  }
+  while (Wire.endTransmission(true) != 0 || pollCounter > 0);
+
+  if (pollCounter == 0)                                       //error handler
+  {
+    #ifdef HTU21D_DEBUG_INFO
+    Serial.println("HTU21D: can't send read a byte command");
+    #endif
+    return HTU21D_ERROR;
+  }
+
+  pollCounter = HTU21D_POLL_LIMIT;
+
+  do
+  {
+    Wire.requestFrom(HTU21D_ADDRESS, 1, true);                //true = stop message after transmission & releas the I2C bus
+    pollCounter--;
+  }
+  while (Wire.available() != 1 || pollCounter > 0);           //check rxBuffer
+
+  if (pollCounter == 0)                                       //error handler
+  {
+    #ifdef HTU21D_DEBUG_INFO
+    Serial.println("HTU21D: can't read a byte");
+    #endif
+    return HTU21D_ERROR;
+  }
+
+  /* read byte from "wire.h" buffer */
   #if ARDUINO >= 100
-  Wire.write(reg);
+  return Wire.read();
   #else
-  Wire.send(reg);
+  return Wire.receive();
   #endif
-  Wire.endTransmission(true);
-
-  Wire.requestFrom(HTU21D_ADDRESS, 1);
-  #if ARDUINO >= 100
-  value = Wire.read();
-  #else
-  value = Wire.receive();
-  #endif
-  Wire.endTransmission(true);
-
-  return value;
 }
 
 /**************************************************************************/
