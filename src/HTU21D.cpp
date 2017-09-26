@@ -57,11 +57,11 @@ bool HTU21D::begin(uint8_t sda, uint8_t scl)
 bool HTU21D::begin(void) 
 {
   Wire.begin();
-  Wire.setClock(400000UL);                //experimental! AVR i2c bus speed: 31kHz..400kHz/31000UL..400000UL, default 100000UL
+  Wire.setClock(100000UL);                //experimental! AVR i2c bus speed: 31kHz..400kHz/31000UL..400000UL, default 100000UL
 #endif
 
   Wire.beginTransmission(HTU21D_ADDRESS);
-  if (Wire.endTransmission(true) != 0)    //safety check - make sure the sensor is connected
+  if (Wire.endTransmission(true) != 0)    //safety check, make sure the sensor is connected
   {
     #ifdef HTU21D_DEBUG_INFO
     Serial.println("HTU21D: can't find the sensor on the bus");
@@ -412,7 +412,7 @@ float HTU21D::readTemperature(HTU21D_TEMP_OPERATION_MODE sensorOperationMode)
   if (checkCRC8(rawTemperature) != checksum)                     //error handler
   {
     #ifdef HTU21D_DEBUG_INFO
-    Serial.println("HTU21D: humidity CRC8 doesn't match");
+    Serial.println("HTU21D: temperature CRC8 doesn't match");
     #endif
     return HTU21D_ERROR;
   }
@@ -593,12 +593,12 @@ void HTU21D::write8(uint8_t reg, uint8_t value)
   }
   while (Wire.endTransmission(true) != 0 || pollCounter > 0);
 
+  #ifdef HTU21D_DEBUG_INFO
   if (pollCounter == 0)                                       //error handler
   {
-    #ifdef HTU21D_DEBUG_INFO
     Serial.println("HTU21D: can't write a byte");
-    #endif
   }
+  #endif
 }
 
 /**************************************************************************/
@@ -625,7 +625,7 @@ uint8_t HTU21D::read8(uint8_t reg)
   if (pollCounter == 0)                                       //error handler
   {
     #ifdef HTU21D_DEBUG_INFO
-    Serial.println("HTU21D: can't send read a byte command");
+    Serial.println("HTU21D: can't request a byte");
     #endif
     return HTU21D_ERROR;
   }
