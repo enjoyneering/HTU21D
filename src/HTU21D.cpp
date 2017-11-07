@@ -103,7 +103,7 @@ void HTU21D::setResolution(HTU21D_RESOLUTION sensorResolution)
 /**************************************************************************/
 void HTU21D::softReset(void)
 {
-  uint8_t pollCounter = HTU21D_POLL_LIMIT;
+  int8_t pollCounter = HTU21D_POLL_LIMIT;
 
   do
   {
@@ -113,6 +113,7 @@ void HTU21D::softReset(void)
       #ifdef HTU21D_DEBUG_INFO
       Serial.println("HTU21D: can't send soft reset command");
       #endif
+      return;
     }
     Wire.beginTransmission(HTU21D_ADDRESS);
     #if ARDUINO >= 100
@@ -210,7 +211,7 @@ void HTU21D::setHeater(HTU21D_HEATER_SWITCH heaterSwitch)
 /**************************************************************************/
 float HTU21D::readHumidity(HTU21D_HUMD_OPERATION_MODE sensorOperationMode)
 {
-  uint8_t  pollCounter = HTU21D_POLL_LIMIT;
+  int8_t   pollCounter = HTU21D_POLL_LIMIT;
   uint8_t  checksum    = 0;
   uint16_t rawHumidity = 0;
   float    humidity    = 0;
@@ -331,7 +332,7 @@ float HTU21D::readHumidity(HTU21D_HUMD_OPERATION_MODE sensorOperationMode)
 /**************************************************************************/
 float HTU21D::readTemperature(HTU21D_TEMP_OPERATION_MODE sensorOperationMode)
 {
-  uint8_t  pollCounter    = HTU21D_POLL_LIMIT;
+  int8_t   pollCounter    = HTU21D_POLL_LIMIT;
   uint8_t  checksum       = 0;
   uint16_t rawTemperature = 0;
 
@@ -571,7 +572,7 @@ uint8_t HTU21D::readFirmwareVersion(void)
 /**************************************************************************/
 void HTU21D::write8(uint8_t reg, uint8_t value)
 {
-  uint8_t pollCounter = HTU21D_POLL_LIMIT;
+  int8_t pollCounter = HTU21D_POLL_LIMIT;
 
   do
   {
@@ -602,7 +603,7 @@ void HTU21D::write8(uint8_t reg, uint8_t value)
 /**************************************************************************/
 uint8_t HTU21D::read8(uint8_t reg)
 {
-  uint8_t pollCounter = HTU21D_POLL_LIMIT;
+  int8_t pollCounter = HTU21D_POLL_LIMIT;
 
   do
   {
