@@ -37,7 +37,7 @@
 #include <Wire.h>
 #endif
 
-#if defined (__AVR__)
+#if defined(__AVR__)
 #include <avr/pgmspace.h>
 #elif defined(ESP8266)
 #include <pgmspace.h>
