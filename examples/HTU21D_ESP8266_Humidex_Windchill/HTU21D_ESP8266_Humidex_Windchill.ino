@@ -101,7 +101,7 @@ void setup()
   lcd.print("Humidex :");
 
   lcd.setCursor(0, 3);
-  lcd.print("Winchill:");
+  lcd.print("Windchill:");
 }
 
 void loop()
