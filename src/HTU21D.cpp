@@ -417,37 +417,41 @@ float HTU21D::readTemperature(HTU21D_TEMP_OPERATION_MODE sensorOperationMode)
 
 /**************************************************************************/
 /*
-    Calculates Compensated Humidity, %RH
+Calculates Compensated Humidity, %RH
 
-    Only for HTU21D & SHT21. Compensate the temperature affect on RH measurement.
-    Si7021 automatically compensates temperature influence on RH every humidity
-    measurement.
+Only for HTU21D & SHT21. Compensate the temperature affect on RH measurement.
+Si7021 automatically compensates temperature influence on RH every humidity
+measurement. Pass the last read temperature to use as the compensation temperature,
+by default the temperature is read from the sensor if a value isn't passed.
 
-    NOTE: - Accuracy +-2%RH in range 0%..100% at 0C..80C
-          - Max. possible measurement time ~115ms
-          - Suggested min time between measurements is 17 sec. - 18 sec.
-            (sensor could faster but it's pointless)
+NOTE: - Accuracy +-2%RH in range 0%..100% at 0C..80C
+- Max. possible measurement time ~115ms
+- Suggested min time between measurements is 17 sec. - 18 sec.
+(sensor could faster but it's pointless)
 */
 /**************************************************************************/
-float HTU21D::readCompensatedHumidity(void)
+float HTU21D::readCompensatedHumidity(float temperature = HTU21D_READ_TEMP)
 {
-  float humidity    = 0;
-  float temperature = 0;
+	float humidity = 0;
 
-  humidity    = readHumidity();
-  temperature = readTemperature();
+	if (temperature == HTU21D_READ_TEMP)
+	{
+		temperature = readTemperature();
+	}
 
-  if (humidity == HTU21D_ERROR || temperature == HTU21D_ERROR)          //error handler
-  {
-    return HTU21D_ERROR;
-  }
-  
-  if (temperature > 0 && temperature < 80)
-  {
-    humidity = humidity + (25 - temperature) * HTU21D_TEMP_COEFFICIENT;
-  }
+	humidity = readHumidity();
 
-  return humidity;
+	if (humidity == HTU21D_ERROR || temperature == HTU21D_ERROR)          //error handler
+	{
+		return HTU21D_ERROR;
+	}
+
+	if (temperature > 0 && temperature < 80)
+	{
+		humidity = humidity + (25 - temperature) * HTU21D_TEMP_COEFFICIENT;
+	}
+
+	return humidity;
 }
 
 /***************************************************************************/
