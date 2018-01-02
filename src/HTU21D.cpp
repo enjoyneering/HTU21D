@@ -362,16 +362,16 @@ float HTU21D::readTemperature(HTU21D_TEMP_OPERATION_MODE sensorOperationMode)
     switch(_resolution)
     {
       case HTU21D_RES_RH12_TEMP14:
-        delay(11);                                        //HTU21D - 44..50msec, SHT21 - 66..85msec
+        delay(50);                                        //HTU21D - 44..50msec, SHT21 - 66..85msec
         break;
       case HTU21D_RES_RH8_TEMP12:
-        delay(4);                                         //HTU21D - 11..13msec, SHT21 - 17..22msec
+        delay(13);                                        //HTU21D - 11..13msec, SHT21 - 17..22msec
         break;
       case HTU21D_RES_RH10_TEMP13:
-        delay(7);                                         //Si7021 - 22..25msec, SHT21 - 33..43msec
+        delay(25);                                        //Si7021 - 22..25msec, SHT21 - 33..43msec
         break;
       case HTU21D_RES_RH11_TEMP11:
-        delay(3);                                         //Si7021 - 6..7msec, SHT21 - 9..11msec
+        delay(7);                                          //Si7021 - 6..7msec, SHT21 - 9..11msec
         break;
     }
   }
