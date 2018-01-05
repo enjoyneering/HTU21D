@@ -43,8 +43,6 @@
 #include <pgmspace.h>
 #endif
 
-//#define HTU21D_DEBUG_INFO                  //enable/disable serial debug info
-
 #define HTU21D_ADDRESS               0x40    //Chip I2C address
 
 #define HTU21D_USER_REGISTER_WRITE   0xE6    //Write user register
@@ -53,7 +51,7 @@
 #define HTU21D_HEATER_REGISTER_WRITE 0x51    //Write Heater Control Register
 #define HTU21D_HEATER_REGISTER_READ  0x11    //Read  Heater Control Register
 
-#define HTU21D_SOFT_RESET            0xFE    //Soft Reset (takes 15ms). Switchs sensor OFF & ON. All registers will set to default exept Heater bit!
+#define HTU21D_SOFT_RESET            0xFE    //Soft Reset (takes 15ms). Switchs sensor OFF & ON. All registers will set to default except Heater bit!
 
 #define HTU21D_SERIAL1_READ1         0xFA    //Read 1st two Serial bytes
 #define HTU21D_SERIAL1_READ2         0x0F    //Read 2nd two Serial bytes
