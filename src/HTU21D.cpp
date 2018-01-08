@@ -36,8 +36,10 @@ HTU21D::HTU21D(HTU21D_RESOLUTION sensorResolution)
 
 /**************************************************************************/
 /*
-    Initializes I2C and configures the sensor (call this function before
-    doing anything else)
+    begin()
+
+    Initializes I2C and configures the sensor, call this function before
+    doing anything else
 
     Wire.endTransmission():
     0 - success
@@ -70,6 +72,8 @@ bool HTU21D::begin(void)
 
 /**************************************************************************/
 /*
+    setResolution()
+
     Sets sensor's resolution
 */
 /**************************************************************************/
@@ -77,22 +81,24 @@ void HTU21D::setResolution(HTU21D_RESOLUTION sensorResolution)
 {
   uint8_t userRegisterData = 0;
 
-  userRegisterData  = read8(HTU21D_USER_REGISTER_READ); //reads current register state
-  userRegisterData &= 0x7E;                             //clears current resolution bits with "0"
-  userRegisterData |= sensorResolution;                 //adds new resolution bits to userRegisterData
+  userRegisterData  = read8(HTU21D_USER_REGISTER_READ); //reads current user register state
+  userRegisterData &= 0x7E;                             //clears current resolution bits with 0
+  userRegisterData |= sensorResolution;                 //adds new resolution bits to user register byte
 
-  write8(HTU21D_USER_REGISTER_WRITE, userRegisterData); //writes updeted register values to sensor
+  write8(HTU21D_USER_REGISTER_WRITE, userRegisterData); //writes updeted byte to the user register
 
   _resolution = sensorResolution;                       //updates private variable
 }
 
 /**************************************************************************/
 /*
-    Soft reset.
+    softReset()  
  
-    Switch sensor OFF & ON again. Takes about 15ms
+    Soft reset is switching sensor OFF & ON. All registers & bits except
+    heater bit will set to default.
 
-    NOTE: All registers set to default except heater bit.
+    NOTE:
+    - takes ~15ms
 */
 /**************************************************************************/
 void HTU21D::softReset(void)
@@ -118,15 +124,18 @@ void HTU21D::softReset(void)
 
 /**************************************************************************/
 /*
-    Checks Battery Status
+    batteryStatus()
 
-    for SHT21, HTU21D
-    if VDD > 2.25v -+0.1v return TRUE
-    if VDD < 2.25v -+0.1v return FALSE
+    Checks the battery status.
 
-    for Si70xx
-    if VDD > 1.9v -+0.1v return TRUE
-    if VDD < 1.9v -+0.1v return FALSE
+    NOTE:
+    - for SHT21, HTU21D
+       if VDD > 2.25v -+0.1v return TRUE
+       if VDD < 2.25v -+0.1v return FALSE
+
+    - for Si70xx
+       if VDD > 1.9v -+0.1v return TRUE
+       if VDD < 1.9v -+0.1v return FALSE
 */
 /**************************************************************************/
 bool HTU21D::batteryStatus(void)
@@ -145,15 +154,15 @@ bool HTU21D::batteryStatus(void)
 
 /**************************************************************************/
 /*
-    Turn ON/OFF build-in Heater
+    setHeater()
 
-    The heater consumtion is 3.09mA-94.20mA @ 3.3v.
-    
-    NOTE: Used to raise the temperature of the sensor. This element can be
-          used to test the sensor, to drive off condensation, or to implement
-          dew-point measurement when the Si7021 is used in conjunction with a
-          separate temperature sensor (the heater will raise the temperature of
-          the internal temperature sensor).
+    Turn ON/OFF build-in heater
+
+    NOTE:
+    - prolonged exposure to high humidity will result gradual upward drift
+      of the RH reading, the heater is used to drive off condensation &
+      reverse drift effect.
+    - heater consumtion is 3.09mA - 94.20mA @ 3.3v.
 */
 /**************************************************************************/
 void HTU21D::setHeater(HTU21D_HEATER_SWITCH heaterSwitch)
@@ -176,6 +185,8 @@ void HTU21D::setHeater(HTU21D_HEATER_SWITCH heaterSwitch)
 
 /**************************************************************************/
 /*
+    readHumidity()
+
     Reads Humidity, %
 
     The "operationMode" could be set up as:
@@ -187,23 +198,17 @@ void HTU21D::setHeater(HTU21D_HEATER_SWITCH heaterSwitch)
        bus by keeping SCL line LOW during measurement.
 
     NOTE:
-    - Accuracy +-2%RH in range 20%..80% at 25C
-    - Max. possible measurement time 29ms
-    - Suggested min time between measurements 17sec..18sec. Sensor could
-      faster but it's pointless.
-    - endTransmission():
-      0 - success
-      1 - data too long to fit in transmit data16
-      2 - received NACK on transmit of address
-      3 - received NACK on transmit of data
-      4 - can't start, line busy
+    - accuracy +-2%RH in range 20%..80% at 25C
+    - maximum measurement time ~29ms
+    - suggested minimum time between measurements 17sec, sensor could
+      faster but it's pointless
 */
 /**************************************************************************/
 float HTU21D::readHumidity(HTU21D_HUMD_OPERATION_MODE sensorOperationMode)
 {
   int8_t   pollCounter = HTU21D_POLL_LIMIT;
-  uint8_t  checksum    = 0;
   uint16_t rawHumidity = 0;
+  uint8_t  checksum    = 0;
   float    humidity    = 0;
 
   /* request humidity measurement */
@@ -240,6 +245,7 @@ float HTU21D::readHumidity(HTU21D_HUMD_OPERATION_MODE sensorOperationMode)
 
   pollCounter = HTU21D_POLL_LIMIT;
 
+  /* read humidity measurement to "wire.h" buffer */
   do
   {
     pollCounter--;
@@ -249,10 +255,10 @@ float HTU21D::readHumidity(HTU21D_HUMD_OPERATION_MODE sensorOperationMode)
   }
   while (Wire.available() != 3);                               //check rxBuffer
 
-  /* reads MSB byte, LSB byte & Checksum from "wire.h" buffer */
+  /* reads MSB, LSB byte & checksum from "wire.h" buffer */
   #if ARDUINO >= 100
   rawHumidity  = Wire.read() << 8;                             //reads MSB byte & shift it to the right
-  rawHumidity |= Wire.read();                                  //reads LSB byte & sum. with MSB byte
+  rawHumidity |= Wire.read();                                  //reads LSB byte & sum with MSB byte
   checksum     = Wire.read();                                  //reads checksum
   #else
   rawHumidity  = Wire.receive() << 8;
@@ -265,19 +271,16 @@ float HTU21D::readHumidity(HTU21D_HUMD_OPERATION_MODE sensorOperationMode)
   rawHumidity ^= 0x02;                                         //clear status bits, humidity always returns xxxxxx10 in the LSB field
   humidity     = 0.001907 * (float)rawHumidity - 6;
   
-  if (humidity < 0)
-  {
-    humidity = 0;
-  }
-  else if (humidity > 100)
-  {
-    humidity = 100;
-  }
+  if      (humidity < 0)   humidity = 0;                       //due RH accuracy, measured value might be slightly less than 0 or more 100
+  else if (humidity > 100) humidity = 100;
+
   return humidity;
 }
 
 /**************************************************************************/
 /*
+    readTemperature()
+
     Reads Temperature, C
 
     The "operationMode" could be set up as:
@@ -292,23 +295,18 @@ float HTU21D::readHumidity(HTU21D_HUMD_OPERATION_MODE sensorOperationMode)
       you have to manualy call "readCompensatedHumidity()"
 
     NOTE:
-    - Accuracy +-0.3C in range 0C..60C
-    - Max. possible measurement time 85ms
-    - Suggested min time between measurements 17sec..18sec. Sensor could
-      faster but it's pointless.
-    - endTransmission():
-      0 - success
-      1 - data too long to fit in transmit data16
-      2 - received NACK on transmit of address
-      3 - received NACK on transmit of data
-      4 - can't start, line busy
+    - accuracy +-0.3C in range 0C..60C
+    - maximum measurement time ~85ms
+    - suggested minimum time between measurements 17sec, sensor could
+      faster but it's pointless
 */
 /**************************************************************************/
 float HTU21D::readTemperature(HTU21D_TEMP_OPERATION_MODE sensorOperationMode)
 {
   int8_t   pollCounter    = HTU21D_POLL_LIMIT;
-  uint8_t  checksum       = 0;
+  int8_t   qntRequest     = 3;                 //3 bytes -> MSB, LSB byte & checksum or 2 bytes -> MSB, LSB byte
   uint16_t rawTemperature = 0;
+  uint8_t  checksum       = 0;
 
   /* request temperature measurement */
   do
@@ -323,7 +321,7 @@ float HTU21D::readTemperature(HTU21D_TEMP_OPERATION_MODE sensorOperationMode)
     Wire.send(sensorOperationMode);
     #endif
   }
-  while (Wire.endTransmission(true) != 0);                         //true = stop message after transmission & releas the I2C bus
+  while (Wire.endTransmission(true) != 0);                          //true = stop message after transmission & releas the I2C bus
 
   /* temperature measurement delay */
   if (sensorOperationMode != SI70xx_TEMP_READ_AFTER_RH_MEASURMENT)
@@ -334,57 +332,72 @@ float HTU21D::readTemperature(HTU21D_TEMP_OPERATION_MODE sensorOperationMode)
         delay(85);                                                 //HTU21D - 44..50msec, Si7021 - 7..11msec, SHT21 - 66..85msec
         break;
       case HTU21D_RES_RH10_TEMP13:
-        delay(43);                                                 //HTU21D - 22..25msec, Si7021 - 4..7msec,  SHT21 - 33..43msec
+        delay(43);                                                  //HTU21D - 22..25msec, Si7021 - 4..7msec,  SHT21 - 33..43msec
         break;
       case HTU21D_RES_RH8_TEMP12:
-        delay(22);                                                 //HTU21D - 11..13msec, Si7021 - 3..4msec,  SHT21 - 17..22msec
+        delay(22);                                                  //HTU21D - 11..13msec, Si7021 - 3..4msec,  SHT21 - 17..22msec
         break;
       case HTU21D_RES_RH11_TEMP11:
-        delay(11);                                                 //HTU21D - 6..7msec,   Si7021 - 2..3msec,  SHT21 - 9..11msec
+        delay(11);                                                  //HTU21D - 6..7msec,   Si7021 - 2..3msec,  SHT21 - 9..11msec
         break;
     }
+  }
+  else
+  {
+    qntRequest = 2;                                                 //checksum is not available with "SI70xx_TEMP_READ_AFTER_RH_MEASURMENT"
   }
 
   pollCounter = HTU21D_POLL_LIMIT;
 
+  /* read temperature measurement to "wire.h" buffer */
   do
   {
     pollCounter--;
-    if (pollCounter == 0) return HTU21D_ERROR;                     //error handler
+    if (pollCounter == 0) return HTU21D_ERROR;                      //error handler
 
-    Wire.requestFrom(HTU21D_ADDRESS, 3, true);                     //true = stop message after transmission & releas the I2C bus
+    Wire.requestFrom(HTU21D_ADDRESS, qntRequest, true);             //true = stop message after transmission & releas the I2C bus
   }
-  while (Wire.available() != 3);                                   //check rxBuffer
+  while (Wire.available() != qntRequest);                           //check rxBuffer
 
-  /* reads MSB byte, LSB byte & Checksum from "wire.h" buffer */
+  /* reads MSB, LSB byte & checksum from "wire.h" buffer */
   #if ARDUINO >= 100
-  rawTemperature  = Wire.read() << 8;                              //reads MSB byte & shift it to the right
-  rawTemperature |= Wire.read();                                   //reads LSB byte and sum. with MSB byte
-  checksum        = Wire.read();                                   //reads checksum
+  rawTemperature  = Wire.read() << 8;                               //reads MSB byte & shift it to the right
+  rawTemperature |= Wire.read();                                    //reads LSB byte and sum. with MSB byte
+  if (sensorOperationMode != SI70xx_TEMP_READ_AFTER_RH_MEASURMENT)  //checksum is not available with "SI70xx_TEMP_READ_AFTER_RH_MEASURMENT"
+  {
+    checksum      = Wire.read();                                    //reads checksum
+  }
   #else
   rawTemperature  = Wire.receive() << 8;
   rawTemperature |= Wire.receive();
-  checksum        = Wire.receive();
+  if (sensorOperationMode != SI70xx_TEMP_READ_AFTER_RH_MEASURMENT)
+  {
+    checksum      = Wire.receive();
+  }
   #endif
 
-  if (checkCRC8(rawTemperature) != checksum) return HTU21D_ERROR;  //error handler
+  if (sensorOperationMode != SI70xx_TEMP_READ_AFTER_RH_MEASURMENT)  //checksum is not available with "SI70xx_TEMP_READ_AFTER_RH_MEASURMENT"
+  {
+    if (checkCRC8(rawTemperature) != checksum) return HTU21D_ERROR; //error handler
+  }
 
-  return 0.002681 * (float)rawTemperature - 46.85;                 //temperature always returns xxxxxx00 in the LSB field
+  return 0.002681 * (float)rawTemperature - 46.85;                  //temperature always returns xxxxxx00 in the LSB field
 }
 
 /**************************************************************************/
 /*
-    Calculates Compensated Humidity, %RH
+    readCompensatedHumidity()
 
-    Only for HTU21D & SHT21. Compensate the temperature affect on RH measurement.
+    Only for HTU21D & SHT21. Calculates temperature compensated Humidity, %RH
+
     Si7021 automatically compensates temperature influence on RH every humidity
     measurement.
 
     NOTE:
-    - Accuracy +-2%RH in range 0%..100% at 0C..80C
-    - Max. possible measurement time 114ms
-    - Suggested min time between measurements 17sec..18sec. Sensor could
-      faster but it's pointless.
+    - accuracy +-2%RH in range 0%..100% at 0C..80C
+    - maximum measurement time ~114ms
+    - suggested minimun time between measurements 17sec, sensor could
+      faster but it's pointless
 */
 /**************************************************************************/
 float HTU21D::readCompensatedHumidity(void)
@@ -395,31 +408,27 @@ float HTU21D::readCompensatedHumidity(void)
   humidity    = readHumidity();
   temperature = readTemperature();
 
-  if (humidity == HTU21D_ERROR || temperature == HTU21D_ERROR)          //error handler
-  {
-    return HTU21D_ERROR;
-  }
+  if (humidity == HTU21D_ERROR || temperature == HTU21D_ERROR) return HTU21D_ERROR;                              //error handler
   
-  if (temperature > 0 && temperature < 80)
-  {
-    humidity = humidity + (25 - temperature) * HTU21D_TEMP_COEFFICIENT;
-  }
+  if (temperature > 0 && temperature < 80) humidity = humidity + (25.0 - temperature) * HTU21D_TEMP_COEFFICIENT; //apply compensation coefficient
 
   return humidity;
 }
 
 /***************************************************************************/
 /*
-    Reads Device ID
+    readDeviceID()
 
-    SerialNumber = {SNA3, SNA2, SNA1, SNA0, SNB3**, SNB2, SNB1, SNB0}
-    
-    **chip ID: 0x0D - Si7013
-               0x14 - Si7020
-               0x15 - Si7021 
-               0x32 - HTU21D & SHT21  
+    Reads device id
 
-    NOTE: see p.23 of Si7021 datasheet for details
+    NOTE:
+    - see p.23 of Si7021 datasheet for details
+    - full serial number is {SNA3, SNA2, SNA1, SNA0, SNB3**, SNB2, SNB1, SNB0}
+    - ** chip ID:
+          0x0D - Si7013
+          0x14 - Si7020
+          0x15 - Si7021 
+          0x32 - HTU21D & SHT21
 */
 /**************************************************************************/
 uint16_t HTU21D::readDeviceID(void)
@@ -427,7 +436,7 @@ uint16_t HTU21D::readDeviceID(void)
   uint16_t deviceID = 0;
   uint8_t  checksum = 0;
 
-  /* Serial_2 requests SNB3**, SNB2, SNB1, SNB0 */
+  /* request serial_2 -> SNB3**, SNB2, SNB1, SNB0 */
   Wire.beginTransmission(HTU21D_ADDRESS);
   #if ARDUINO >= 100
   Wire.write(HTU21D_SERIAL2_READ1);
@@ -438,7 +447,7 @@ uint16_t HTU21D::readDeviceID(void)
   #endif
   Wire.endTransmission(true);
 
-  /* Serial_2 reads SNB3**, SNB2 & CRC */
+  /* read serial_2 -> SNB3**, SNB2, CRC */
   Wire.requestFrom(HTU21D_ADDRESS, 3, true);                //true = stop message after transmission & releas the I2C bus
   #if ARDUINO >= 100
   deviceID  = Wire.read() << 8;
@@ -449,7 +458,7 @@ uint16_t HTU21D::readDeviceID(void)
   deviceID |= Wire.receive();
   checksum  = Wire.receive();
   #endif
-  if (checkCRC8(deviceID) != checksum) return HTU21D_ERROR;
+  if (checkCRC8(deviceID) != checksum) return HTU21D_ERROR; //checksum verification & error handler
 
   deviceID = deviceID >> 8;
 
@@ -476,15 +485,19 @@ uint16_t HTU21D::readDeviceID(void)
 
 /***************************************************************************/
 /*
-    Reads Firware Version
+    readFirmwareVersion()
 
-    NOTE: see p.24 of Si7021 datasheet for details
+    Reads firware version
+
+    NOTE:
+    - see p.24 of Si7021 datasheet for details
 */
 /**************************************************************************/
 uint8_t HTU21D::readFirmwareVersion(void)
 {
   uint8_t firmwareVersion = 0;
 
+  /* request firware version */
   Wire.beginTransmission(HTU21D_ADDRESS);
   #if ARDUINO >= 100
   Wire.write(HTU21D_FIRMWARE_READ1);
@@ -495,6 +508,7 @@ uint8_t HTU21D::readFirmwareVersion(void)
   #endif
   Wire.endTransmission(true);
 
+  /* read firware version */
   Wire.requestFrom(HTU21D_ADDRESS, 1, true); //true = stop message after transmission & releas the I2C bus
   #if ARDUINO >= 100
   firmwareVersion = Wire.read();
@@ -519,7 +533,9 @@ uint8_t HTU21D::readFirmwareVersion(void)
 
 /**************************************************************************/
 /*
-    Writes 8 bit value to the sensor register over I2C
+    write8()
+
+    Writes 8 bit to the sensor register over I2C
 */
 /**************************************************************************/
 void HTU21D::write8(uint8_t reg, uint8_t value)
@@ -545,6 +561,8 @@ void HTU21D::write8(uint8_t reg, uint8_t value)
 
 /**************************************************************************/
 /*
+    read8()
+
     Reads 8 bit value from the sensor, over I2C
 */
 /**************************************************************************/
@@ -587,6 +605,8 @@ uint8_t HTU21D::read8(uint8_t reg)
 
 /**************************************************************************/
 /*
+    checkCRC8()
+
     Calculates CRC8 for 16 bit received Data
 
     NOTE: For more info about Cyclic Redundancy Check (CRC) see
