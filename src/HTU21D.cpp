@@ -403,7 +403,6 @@ float HTU21D::readTemperature(HTU21D_TEMP_OPERATION_MODE sensorOperationMode)
 float HTU21D::readCompensatedHumidity(float temperature)
 {
   float humidity    = 0;
-  //float temperature = 0;
 
                                        humidity    = readHumidity();
   if (temperature == HTU21D_READ_TEMP) temperature = readTemperature();
