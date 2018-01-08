@@ -191,14 +191,14 @@ void HTU21D::setHeater(HTU21D_HEATER_SWITCH heaterSwitch)
 
     The "operationMode" could be set up as:
     - "HTU21D_TRIGGER_TEMP_MEASURE_NOHOLD" mode, allows communication with another
-       slave devices on I2C bus while sensor is measuring.
-       WARNING!!! Could create collision if more than one slave devices are
-       connected to the same bus.
+      slave devices on I2C bus while sensor is measuring.
+      WARNING!!! Could create collision if more than one slave devices are
+      connected to the same bus.
     - "HTU21D_TRIGGER_HUMD_MEASURE_HOLD" mode, sensor blocks communication on I2C
-       bus by keeping SCL line LOW during measurement.
+      bus by keeping SCL line LOW during measurement.
 
     NOTE:
-    - accuracy +-2%RH in range 20%..80% at 25C
+    - maximum accuracy +-2%RH in range 20%..80% at 25C
     - maximum measurement time ~29ms
     - suggested minimum time between measurements 17sec, sensor could
       faster but it's pointless
@@ -245,7 +245,7 @@ float HTU21D::readHumidity(HTU21D_HUMD_OPERATION_MODE sensorOperationMode)
 
   pollCounter = HTU21D_POLL_LIMIT;
 
-  /* read humidity measurement to "wire.h" buffer */
+  /* read humidity measurement to "wire.h" rxBuffer */
   do
   {
     pollCounter--;
@@ -255,7 +255,7 @@ float HTU21D::readHumidity(HTU21D_HUMD_OPERATION_MODE sensorOperationMode)
   }
   while (Wire.available() != 3);                               //check rxBuffer
 
-  /* reads MSB, LSB byte & checksum from "wire.h" buffer */
+  /* reads MSB, LSB byte & checksum from "wire.h" rxBuffer */
   #if ARDUINO >= 100
   rawHumidity  = Wire.read() << 8;                             //reads MSB byte & shift it to the right
   rawHumidity |= Wire.read();                                  //reads LSB byte & sum with MSB byte
@@ -289,13 +289,13 @@ float HTU21D::readHumidity(HTU21D_HUMD_OPERATION_MODE sensorOperationMode)
       WARNING!!! Could create collision if more than one slave devices are
       connected to the same bus.
     - "HTU21D_TRIGGER_HUMD_MEASURE_HOLD" mode, sensor blocks communication on I2C
-       bus by keeping SCL line LOW during measurement.
+      bus by keeping SCL line LOW during measurement.
     - "SI7021_TEMP_READ_AFTER_RH_MEASURMENT" mode, allows to retrive temperature
       measurement, which was made at previouse RH measurement. For HTU21D & SHT21
       you have to manualy call "readCompensatedHumidity()"
 
     NOTE:
-    - accuracy +-0.3C in range 0C..60C
+    - maximum accuracy +-0.3C in range 0C..60C
     - maximum measurement time ~85ms
     - suggested minimum time between measurements 17sec, sensor could
       faster but it's pointless
@@ -349,7 +349,7 @@ float HTU21D::readTemperature(HTU21D_TEMP_OPERATION_MODE sensorOperationMode)
 
   pollCounter = HTU21D_POLL_LIMIT;
 
-  /* read temperature measurement to "wire.h" buffer */
+  /* read temperature measurement to "wire.h" rxBuffer */
   do
   {
     pollCounter--;
@@ -359,7 +359,7 @@ float HTU21D::readTemperature(HTU21D_TEMP_OPERATION_MODE sensorOperationMode)
   }
   while (Wire.available() != qntRequest);                           //check rxBuffer
 
-  /* reads MSB, LSB byte & checksum from "wire.h" buffer */
+  /* reads MSB, LSB byte & checksum from "wire.h" rxBuffer */
   #if ARDUINO >= 100
   rawTemperature  = Wire.read() << 8;                               //reads MSB byte & shift it to the right
   rawTemperature |= Wire.read();                                    //reads LSB byte and sum. with MSB byte
@@ -394,19 +394,19 @@ float HTU21D::readTemperature(HTU21D_TEMP_OPERATION_MODE sensorOperationMode)
     measurement.
 
     NOTE:
-    - accuracy +-2%RH in range 0%..100% at 0C..80C
+    - maximum accuracy +-2%RH in range 0%..100% at 0C..80C
     - maximum measurement time ~114ms
     - suggested minimun time between measurements 17sec, sensor could
       faster but it's pointless
 */
 /**************************************************************************/
-float HTU21D::readCompensatedHumidity(void)
+float HTU21D::readCompensatedHumidity(float temperature)
 {
   float humidity    = 0;
-  float temperature = 0;
+  //float temperature = 0;
 
-  humidity    = readHumidity();
-  temperature = readTemperature();
+                                       humidity    = readHumidity();
+  if (temperature == HTU21D_READ_TEMP) temperature = readTemperature();
 
   if (humidity == HTU21D_ERROR || temperature == HTU21D_ERROR) return HTU21D_ERROR;                              //error handler
   
