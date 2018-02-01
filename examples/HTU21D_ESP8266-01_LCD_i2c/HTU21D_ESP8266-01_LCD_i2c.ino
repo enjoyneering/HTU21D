@@ -129,7 +129,6 @@ void loop()
 
     default:
       lcd.print(humidity);
-      lcd.print("% ");      
       break;
   }
   lcd.print("%");
