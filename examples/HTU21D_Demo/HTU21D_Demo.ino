@@ -5,18 +5,20 @@
   written by : enjoyneering79
   sourse code: https://github.com/enjoyneering/
 
-  This sensor uses I2C bus to communicate. Two pins are required to interface
+  This sensor uses I2C bus to communicate, specials pins are required to interface
 
-  Connect sensor to pins:  SDA     SCL
-  Uno, Mini, Pro:          A4      A5
-  Mega2560, Due:           20      21
-  Leonardo:                2       3
-  ATtiny85:                0(5)    2/A1(7) (ATTinyCore  - https://github.com/SpenceKonde/ATTinyCore
-                                            & TinyWireM - https://github.com/SpenceKonde/TinyWireM)
-  ESP8266 ESP-xx:          ANY     ANY     (ESP8266Core - https://github.com/esp8266/Arduino)
-  NodeMCU 1.0:             ANY     ANY     (D2 & D1 by default)
+  Connect chip to pins:    SDA        SCL
+  Uno, Mini, Pro:          A4         A5
+  Mega2560, Due:           20         21
+  Leonardo:                2          3
+  ATtiny85:                0(5)       2/A1(7)   (ATTinyCore  - https://github.com/SpenceKonde/ATTinyCore
+                                                 & TinyWireM - https://github.com/SpenceKonde/TinyWireM)
+  ESP8266 ESP-01:          GPIO0/D5   GPIO2/D3  (ESP8266Core - https://github.com/esp8266/Arduino)
+  NodeMCU 1.0:             GPIO4/D2   GPIO5/D1
+  WeMos D1 Mini:           GPIO4/D2   GPIO5/D1
 
-  BSD license, all text above must be included in any redistribution
+  GNU GPL license, all text above must be included in any redistribution, see link below for details
+  - https://www.gnu.org/licenses/licenses.html
 */
 /***************************************************************************************************/
 #include <Wire.h>
@@ -26,10 +28,10 @@
 HTU21D(resolution)
 
 resolution:
-HTU21D_RES_RH12_TEMP14 - RH: 12Bit. Temperature: 14Bit, by default.
-HTU21D_RES_RH8_TEMP12  - RH: 8Bit.  Temperature: 12Bit.
-HTU21D_RES_RH10_TEMP13 - RH: 10Bit. Temperature: 13Bit.
-HTU21D_RES_RH11_TEMP11 - RH: 11Bit. Temperature: 11Bit.
+HTU21D_RES_RH12_TEMP14 - RH: 12Bit, Temperature: 14Bit, by default
+HTU21D_RES_RH8_TEMP12  - RH: 8Bit,  Temperature: 12Bit
+HTU21D_RES_RH10_TEMP13 - RH: 10Bit, Temperature: 13Bit
+HTU21D_RES_RH11_TEMP11 - RH: 11Bit, Temperature: 11Bit
 */
 HTU21D myHTU21D(HTU21D_RES_RH12_TEMP14);
 
@@ -40,10 +42,10 @@ void setup()
   
   while (myHTU21D.begin() != true)
   {
-    Serial.println(F("HTU21D, SHT21 or Si70xx sensor is faild or not connected"));
+    Serial.println(F("HTU21D, SHT21 sensor is faild or not connected"));
     delay(5000);
   }
-  Serial.println(F("HTU21D, SHT21 or Si70xx sensor is active"));
+  Serial.println(F("HTU21D, SHT21 sensor is active"));
 }
 
 
