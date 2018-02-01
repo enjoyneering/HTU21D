@@ -207,7 +207,6 @@ void loop()
   lcd.write(DEGREE_SYMBOL);
   lcd.write(SPACE_SYMBOL);
 
-
   /* prints serial data */
   Serial.print("Humidity............: "); Serial.print(humidity);    Serial.println("%");
   Serial.print("Temperature.........: "); Serial.print(temperature); Serial.println("C");
