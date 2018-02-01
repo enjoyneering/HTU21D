@@ -77,7 +77,7 @@
 #define HTU21D_SOFT_RESET_DELAY      15        //in milliseconds
 
 #define HTU21D_POLL_LIMIT            8         //i2c retry limit
-#define HTU21D_READ_TEMP             0xFE      //force to read temperature, see https://github.com/enjoyneering/HTU21D/pull/3
+#define HTU21D_FORCE_READ_TEMP       0xFE      //force to read temperature, see https://github.com/enjoyneering/HTU21D/pull/3
 #define HTU21D_ERROR                 0xFF      //returns 255, if CRC8 or communication error is occurred
 
 typedef enum
@@ -130,9 +130,9 @@ class HTU21D
    #else
    bool     begin(void);
    #endif
-   float    readHumidity(HTU21D_HUMD_OPERATION_MODE = HTU21D_TRIGGER_HUMD_MEASURE_HOLD);    //max accuracy +-2%RH in range 20%..80% at 25C
-   float    readCompensatedHumidity(float temperature = HTU21D_READ_TEMP);                  //max accuracy +-2%RH in range 0%..100% at 0C..80C
-   float    readTemperature(HTU21D_TEMP_OPERATION_MODE = HTU21D_TRIGGER_TEMP_MEASURE_HOLD); //max accuracy +-0.3C in range 0C..60C
+   float    readHumidity(HTU21D_HUMD_OPERATION_MODE = HTU21D_TRIGGER_HUMD_MEASURE_HOLD);    //max accuracy ±2%RH in range 20%..80% at 25C
+   float    readCompensatedHumidity(float temperature = HTU21D_FORCE_READ_TEMP);            //max accuracy ±2%RH in range 0%..100% at 0C..80C
+   float    readTemperature(HTU21D_TEMP_OPERATION_MODE = HTU21D_TRIGGER_TEMP_MEASURE_HOLD); //max accuracy ±0.3C in range 0C..60C
    void     setResolution(HTU21D_RESOLUTION sensorResolution);
    void     softReset(void);
    bool     batteryStatus(void);
