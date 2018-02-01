@@ -17,7 +17,8 @@
   NodeMCU 1.0:             GPIO4/D2   GPIO5/D1
   WeMos D1 Mini:           GPIO4/D2   GPIO5/D1
 
-  BSD license, all text above must be included in any redistribution
+  GNU GPL license, all text above must be included in any redistribution, see link below for details:
+  - https://www.gnu.org/licenses/licenses.html
 */
 /***************************************************************************************************/
 
@@ -130,12 +131,12 @@ void HTU21D::softReset(void)
 
     NOTE:
     - for SHT21, HTU21D
-       if VDD > 2.25v -+0.1v return TRUE
-       if VDD < 2.25v -+0.1v return FALSE
+       if VDD > 2.25v ±0.1v return TRUE
+       if VDD < 2.25v ±0.1v return FALSE
 
     - for Si70xx
-       if VDD > 1.9v -+0.1v return TRUE
-       if VDD < 1.9v -+0.1v return FALSE
+       if VDD > 1.9v ±0.1v return TRUE
+       if VDD < 1.9v ±0.1v return FALSE
 */
 /**************************************************************************/
 bool HTU21D::batteryStatus(void)
@@ -145,10 +146,8 @@ bool HTU21D::batteryStatus(void)
   userRegisterData  = read8(HTU21D_USER_REGISTER_READ);
   userRegisterData &= 0x40;
 
-  if (userRegisterData == 0x00)
-  {
-    return true;
-  }
+  if (userRegisterData == 0x00) return true;
+
   return false;
 }
 
@@ -198,7 +197,7 @@ void HTU21D::setHeater(HTU21D_HEATER_SWITCH heaterSwitch)
       bus by keeping SCL line LOW during measurement.
 
     NOTE:
-    - maximum accuracy +-2%RH in range 20%..80% at 25C
+    - maximum accuracy ±2%RH in range 20%..80% at 25C
     - maximum measurement time ~29ms
     - suggested minimum time between measurements 17sec, sensor could
       faster but it's pointless
@@ -295,7 +294,7 @@ float HTU21D::readHumidity(HTU21D_HUMD_OPERATION_MODE sensorOperationMode)
       you have to manualy call "readCompensatedHumidity()"
 
     NOTE:
-    - maximum accuracy +-0.3C in range 0C..60C
+    - maximum accuracy ±0.3C in range 0C..60C
     - maximum measurement time ~85ms
     - suggested minimum time between measurements 17sec, sensor could
       faster but it's pointless
@@ -394,7 +393,7 @@ float HTU21D::readTemperature(HTU21D_TEMP_OPERATION_MODE sensorOperationMode)
     measurement.
 
     NOTE:
-    - maximum accuracy +-2%RH in range 0%..100% at 0C..80C
+    - maximum accuracy ±2%RH in range 0%..100% at 0C..80C
     - maximum measurement time ~114ms
     - suggested minimun time between measurements 17sec, sensor could
       faster but it's pointless
@@ -402,10 +401,11 @@ float HTU21D::readTemperature(HTU21D_TEMP_OPERATION_MODE sensorOperationMode)
 /**************************************************************************/
 float HTU21D::readCompensatedHumidity(float temperature)
 {
-  float humidity    = 0;
+  float humidity = 0;
 
-                                       humidity    = readHumidity();
-  if (temperature == HTU21D_READ_TEMP) temperature = readTemperature();
+  humidity = readHumidity();
+
+  if (temperature == HTU21D_FORCE_READ_TEMP) temperature = readTemperature();                                    //force to read temperature
 
   if (humidity == HTU21D_ERROR || temperature == HTU21D_ERROR) return HTU21D_ERROR;                              //error handler
   
@@ -590,9 +590,9 @@ uint8_t HTU21D::read8(uint8_t reg)
     pollCounter--;
     if (pollCounter == 0) return HTU21D_ERROR; //error handler
 
-    Wire.requestFrom(HTU21D_ADDRESS, 1, true); //true = stop message after transmission & releas the I2C bus
+    Wire.requestFrom(HTU21D_ADDRESS, 1, true); //true -> stop message after transmission & releas the I2C bus
   }
-  while (Wire.available() != 1);               //check rxBuffer
+  while (Wire.available() != 1);
 
   /* read byte from "wire.h" rxBuffer */
   #if ARDUINO >= 100
