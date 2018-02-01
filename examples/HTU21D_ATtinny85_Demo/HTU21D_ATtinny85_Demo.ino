@@ -5,21 +5,23 @@
   written by : enjoyneering79
   sourse code: https://github.com/enjoyneering/
 
-  This sensor uses I2C bus to communicate. Two pins are required to interface
+  This sensor uses I2C bus to communicate, specials pins are required to interface
 
-  Connect sensor to pins:  SDA     SCL
-  Uno, Mini, Pro:          A4      A5
-  Mega2560, Due:           20      21
-  Leonardo:                2       3
-  ATtiny85:                0(5)    2/A1(7) (ATTinyCore  - https://github.com/SpenceKonde/ATTinyCore
-                                            & TinyWireM - https://github.com/SpenceKonde/TinyWireM)
-  ESP8266 ESP-xx:          ANY     ANY     (ESP8266Core - https://github.com/esp8266/Arduino)
-  NodeMCU 1.0:             ANY     ANY     (D2 & D1 by default)
+  Connect chip to pins:    SDA        SCL
+  Uno, Mini, Pro:          A4         A5
+  Mega2560, Due:           20         21
+  Leonardo:                2          3
+  ATtiny85:                0(5)       2/A1(7)   (ATTinyCore  - https://github.com/SpenceKonde/ATTinyCore
+                                                 & TinyWireM - https://github.com/SpenceKonde/TinyWireM)
+  ESP8266 ESP-01:          GPIO0/D5   GPIO2/D3  (ESP8266Core - https://github.com/esp8266/Arduino)
+  NodeMCU 1.0:             GPIO4/D2   GPIO5/D1
+  WeMos D1 Mini:           GPIO4/D2   GPIO5/D1
 
-  BSD license, all text above must be included in any redistribution
+  GNU GPL license, all text above must be included in any redistribution, see link below for details
+  - https://www.gnu.org/licenses/licenses.html
 */
 /***************************************************************************************************/
-#include <TinyWireM.h>
+#include <TinyWireM.h>         //https://github.com/SpenceKonde/TinyWireM
 #include <HTU21D.h>
 #include <LiquidCrystal_I2C.h> //https://github.com/enjoyneering/LiquidCrystal_I2C
 
@@ -29,7 +31,7 @@
 #define MAX_HUMIDITY  100      //max. relative humidity
 #define LED           1        //connect led to ATtiny85 pin no.6 in series with 470 Ohm resistor
 
-float   humidity;
+float   humidity = 0;
 
 uint8_t humidity_icon[8]    = {0x04, 0x0E, 0x0E, 0x1F, 0x1F, 0x1F, 0x0E, 0x00};
 uint8_t plus_minus_icon[8]  = {0x00, 0x04, 0x0E, 0x04, 0x00, 0x0E, 0x00, 0x00};
@@ -39,10 +41,10 @@ uint8_t temperature_icon[8] = {0x04, 0x0A, 0x0A, 0x0E, 0x0E, 0x1F, 0x1F, 0x0E};
 HTU21D(resolution)
 
 resolution:
-HTU21D_RES_RH12_TEMP14 - RH: 12Bit. Temperature: 14Bit, by default.
-HTU21D_RES_RH8_TEMP12  - RH: 8Bit.  Temperature: 12Bit.
-HTU21D_RES_RH10_TEMP13 - RH: 10Bit. Temperature: 13Bit.
-HTU21D_RES_RH11_TEMP11 - RH: 11Bit. Temperature: 11Bit.
+HTU21D_RES_RH12_TEMP14 - RH: 12Bit, Temperature: 14Bit, by default
+HTU21D_RES_RH8_TEMP12  - RH: 8Bit,  Temperature: 12Bit
+HTU21D_RES_RH10_TEMP13 - RH: 10Bit, Temperature: 13Bit
+HTU21D_RES_RH11_TEMP11 - RH: 11Bit, Temperature: 11Bit
 */
 HTU21D            myHTU21D(HTU21D_RES_RH12_TEMP14);
 LiquidCrystal_I2C lcd(PCF8574_ADDR_A21_A11_A01, 4, 5, 6, 16, 11, 12, 13, 14, POSITIVE);
@@ -86,7 +88,7 @@ void setup()
   lcd.setCursor(0, 0); 
   lcd.write((uint8_t)1);                                    //print custom tempereture symbol
 
-  lcd.setCursor(0, 1);                                      //set 1-st colum & 2-nd row. NOTE: first colum & row started at zero
+  lcd.setCursor(0, 1);                                      //set 1-st colum & 2-nd row, first colum & row started at zero
   lcd.write((uint8_t)0);                                    //print custom humidity symbol
 
   lcd.setCursor(0, 2);
