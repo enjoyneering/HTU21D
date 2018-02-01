@@ -17,7 +17,8 @@
   NodeMCU 1.0:             GPIO4/D2   GPIO5/D1
   WeMos D1 Mini:           GPIO4/D2   GPIO5/D1
 
-  BSD license, all text above must be included in any redistribution
+  GNU GPL license, all text above must be included in any redistribution, see link below for details:
+  - https://www.gnu.org/licenses/licenses.html
 */
 /***************************************************************************************************/
 
@@ -58,10 +59,10 @@
 #define HTU21D_SERIAL2_READ1         0xFC      //read 3-rd two serial number bytes
 #define HTU21D_SERIAL2_READ2         0xC9      //read 4-th two serial number bytes
 
-#define SI7013_CHIPID                0x0D      //device id of SI7013  
-#define SI7020_CHIPID                0x14      //device id of SI7020 
-#define SI7021_CHIPID                0x15      //device id of SI7021 
-#define HTU21D_CHIPID                0x32      //device id of HTU21D/SHT21
+#define SI7013_CHIPID                0x0D      //SI7013       device id 
+#define SI7020_CHIPID                0x14      //SI7020       device id
+#define SI7021_CHIPID                0x15      //SI7021       device id 
+#define HTU21D_CHIPID                0x32      //HTU21D/SHT21 device id
 
 #define HTU21D_FIRMWARE_READ1        0x84      //read firmware revision, first  part of the command
 #define HTU21D_FIRMWARE_READ2        0xB8      //read firmware revision, second part of the command
@@ -76,7 +77,7 @@
 #define HTU21D_SOFT_RESET_DELAY      15        //in milliseconds
 
 #define HTU21D_POLL_LIMIT            8         //i2c retry limit
-#define HTU21D_READ_TEMP             0xFE      //indicates to read the temperature from the sensor before humidity compensation, see https://github.com/enjoyneering/HTU21D/pull/3
+#define HTU21D_READ_TEMP             0xFE      //force to read temperature, see https://github.com/enjoyneering/HTU21D/pull/3
 #define HTU21D_ERROR                 0xFF      //returns 255, if CRC8 or communication error is occurred
 
 typedef enum
