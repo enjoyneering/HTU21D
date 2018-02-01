@@ -118,7 +118,7 @@ void loop()
       break;
   }
   lcd.write(DEGREE_SYMBOL);
-  lcd.write(LCD_SPACE_SYMBOL);
+  lcd.write(SPACE_SYMBOL);
 
   lcd.setCursor(1, 1);
   switch (humidity)
@@ -133,7 +133,7 @@ void loop()
       break;
   }
   lcd.print("%");
-  lcd.write(LCD_SPACE_SYMBOL);
+  lcd.write(SPACE_SYMBOL);
 
   delay(10000);
 }
