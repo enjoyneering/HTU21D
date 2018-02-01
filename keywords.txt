@@ -6,11 +6,10 @@
 # Datatypes		(KEYWORD1)
 #######################################
 
-HTU21D	KEYWORD1	HTU21D
-
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
+
 begin			KEYWORD2
 readHumidity		KEYWORD2
 readCompensatedHumidity	KEYWORD2
@@ -22,6 +21,11 @@ batteryStatus		KEYWORD2
 setHeater		KEYWORD2
 readFirmwareVersion	KEYWORD2
 readDeviceID		KEYWORD2
+
+#######################################
+# Instances		(KEYWORD2)
+#######################################
+HTU21D			KEYWORD2
 
 #######################################
 # Constants (LITERAL1)
