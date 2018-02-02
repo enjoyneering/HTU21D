@@ -30,7 +30,7 @@
 #define LCD_ROWS      4        //qnt. of lcd rows
 #define LCD_COLUMNS   20       //qnt. of lcd columns
 
-#define DEGREE_SYMBOL 0xDF     //degree symbol from the lcd ROM
+#define DEGREE_SYMBOL 0xDF     //degree symbol from lcd ROM
 #define SPACE_SYMBOL  0x20     //space  symbol from lcd ROM
 
 #define WIND_SPEED    5        //assuming wind speed is 5 m/sec
@@ -107,10 +107,10 @@ void setup()
   lcd.write((uint8_t)1);                                                //print custom humidity symbol
 
   lcd.setCursor(0, 1);
-  lcd.print("Dewpoint:");
+  lcd.print("Dewpoint :");
 
   lcd.setCursor(0, 2);
-  lcd.print("Humidex :");
+  lcd.print("Humidex  :");
 
   lcd.setCursor(0, 3);
   lcd.print("Windchill:");
@@ -134,76 +134,36 @@ void loop()
 
   /* prints dynamic temperature data */
   lcd.setCursor(1, 0);
-  switch (temperature)
-  {
-    case HTU21D_ERROR:
-      lcd.print("xx");
-      break;
-
-    default:
-      lcd.print(temperature);
-      break;
-  }
+  if   (temperature != HTU21D_ERROR) lcd.print(temperature);
+  else                               lcd.print("xxx");
   lcd.write(DEGREE_SYMBOL);
   lcd.write(SPACE_SYMBOL);
 
   /* prints dynamic humidity data */
   lcd.setCursor(11, 0);
-  switch (humidity)
-  {
-    case HTU21D_ERROR:
-      lcd.print("xx");
-      break;
-
-    default:
-      lcd.print(humidity);
-      break;
-  }
+  if   (humidity != HTU21D_ERROR) lcd.print(humidity);
+  else                            lcd.print("xxx");
   lcd.print("%");
   lcd.write(SPACE_SYMBOL);
 
   /* prints dynamic dewpoint data */
-  lcd.setCursor(9, 1);
-  switch (dewpoint)
-  {
-    case ERROR:
-      lcd.print("xx");
-      break;
-
-    default:
-      lcd.print(dewpoint);
-      break;
-  }
+  lcd.setCursor(10, 1);
+  if   (dewpoint != ERROR) lcd.print(dewpoint);
+  else                     lcd.print("xxx");
   lcd.write(DEGREE_SYMBOL);
   lcd.write(SPACE_SYMBOL);
 
   /* prints dynamic humidex data */
-  lcd.setCursor(9, 2);
-  switch (humidex)
-  {
-    case ERROR:
-      lcd.print("xx");
-      break;
-
-    default:
-      lcd.print(humidex);
-      break;
-  }
+  lcd.setCursor(10, 2);
+  if   (humidex != ERROR) lcd.print(humidex);
+  else                    lcd.print("xxx");
   lcd.write(DEGREE_SYMBOL);
   lcd.write(SPACE_SYMBOL);
 
   /* prints dynamic windchill data */
-  lcd.setCursor(9, 3);
-  switch (windchill)
-  {
-    case ERROR:
-      lcd.print("xx");
-      break;
-
-    default:
-      lcd.print(windchill);
-      break;
-  }
+  lcd.setCursor(10, 3);
+  if   (windchill != ERROR) lcd.print(windchill);
+  else                      lcd.print("xxx");
   lcd.write(DEGREE_SYMBOL);
   lcd.write(SPACE_SYMBOL);
 
@@ -224,7 +184,6 @@ void loop()
     Dew point calculation
 */
 /**************************************************************************/
-/* dew point calculation */
 float calculateDewPoint(float temperature, float humidity)
 {
   float a = 17.271;
@@ -297,7 +256,7 @@ float calculateWindchill(float temperature, float velocity)
 /*
     humidexDiscomfortIndex()
 
-    Describes levels of humidex discomfort index
+    Describes discomfort levels of humidex index
 */
 /**************************************************************************/
 void humidexDiscomfortIndex(float humidex)
@@ -332,7 +291,7 @@ void humidexDiscomfortIndex(float humidex)
 /*
     windchillDiscomfortIndex()
 
-    Describes levels of windchill discomfort index
+    Describes discomfort levels of windchill index
 */
 /**************************************************************************/
 
