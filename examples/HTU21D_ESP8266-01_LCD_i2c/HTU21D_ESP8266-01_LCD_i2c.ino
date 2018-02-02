@@ -105,34 +105,19 @@ void loop()
   humidity    = myHTU21D.readCompensatedHumidity();
   temperature = myHTU21D.readTemperature();
 
-  /* prints dynamic text & data */
+  /* prints dynamic temperature data */
   lcd.setCursor(1, 0);
-  switch (temperature)
-  {
-    case HTU21D_ERROR:
-      lcd.print("xx");
-      break;
-
-    default:
-      lcd.print(temperature);
-      break;
-  }
+  if   (temperature != HTU21D_ERROR) lcd.print(temperature);
+  else                               lcd.print("xxx");
   lcd.write(DEGREE_SYMBOL);
   lcd.write(SPACE_SYMBOL);
 
+  /* prints dynamic humidity data */
   lcd.setCursor(1, 1);
-  switch (humidity)
-  {
-    case HTU21D_ERROR:
-      lcd.print("xx");
-      break;
-
-    default:
-      lcd.print(humidity);
-      break;
-  }
+  if   (humidity != HTU21D_ERROR) lcd.print(humidity);
+  else                            lcd.print("xxx");
   lcd.print("%");
   lcd.write(SPACE_SYMBOL);
 
-  delay(10000);
+  delay(100000);
 }
