@@ -38,8 +38,8 @@
 #define DEGREE_SYMBOL 0xDF     //degree symbol from the LCD ROM
 #define SPACE_SYMBOL  0x20     //space  symbol from lcd ROM
 
-uint8_t temperature_icon[8] = {0x04, 0x0A, 0x0A, 0x0A, 0x0A, 0x1F, 0x1F, 0x0E};
-uint8_t humidity_icon[8]    = {0x04, 0x0E, 0x0E, 0x1F, 0x1F, 0x1F, 0x0E, 0x00};
+const uint8_t temperature_icon[8] PROGMEM = {0x04, 0x0A, 0x0A, 0x0A, 0x0A, 0x1F, 0x1F, 0x0E}; //PROGMEM saves variable to flash & keeps dynamic memory free
+const uint8_t humidity_icon[8]    PROGMEM = {0x04, 0x0E, 0x0E, 0x1F, 0x1F, 0x1F, 0x0E, 0x00};
 
 float   temperature = 0;
 float   humidity    = 0;
@@ -60,18 +60,18 @@ LiquidCrystal_I2C lcd(PCF8574_ADDR_A21_A11_A01, 4, 5, 6, 16, 11, 12, 13, 14, POS
 
 void setup()
 {
-  WiFi.enableAP(false);                                         //disable soft AP
-  WiFi.enableSTA(false);                                        //disable station/client
+  WiFi.persistent(false);                                       //disable saving wifi config into SDK flash area
+  WiFi.forceSleepBegin();                                       //disable AP & station by calling "WiFi.mode(WIFI_OFF)" & put modem to sleep
 
   Serial.begin(115200);
   
   /* LCD connection check */  
   while (lcd.begin(LCD_COLUMNS, LCD_ROWS, LCD_5x8DOTS) != true) //20x4 display with 5x8 pixels size
   {
-    Serial.println("PCF8574 is not connected or lcd pins declaration is wrong. Only pins numbers: 4,5,6,16,11,12,13,14 are legal.");
+    Serial.println(F("PCF8574 is not connected or lcd pins declaration is wrong. Only pins numbers: 4,5,6,16,11,12,13,14 are legal.")); //(F()) saves string to flash & keeps dynamic memory free
     delay(5000);
   }
-  lcd.print("PCF8574 is OK");
+  lcd.print(F("PCF8574 is OK"));
   delay(1000);
   lcd.clear();
 
@@ -79,25 +79,25 @@ void setup()
   while (myHTU21D.begin() != true)
   {
     lcd.setCursor(0, 0);
-    lcd.print("HTU21D error");
+    lcd.print(F("HTU21D error"));
     delay(5000);
   }
   lcd.clear();
 
-  lcd.print("HTU21D OK");
+  lcd.print(F("HTU21D OK"));
   delay(1000);
   lcd.clear();
 
   /* load custom symbol to CGRAM */
-  lcd.createChar(0, temperature_icon);
-  lcd.createChar(1, humidity_icon);
+  lcd.createChar(0, temperature_icon, 'F');                     //'F' - variable stored in flash
+  lcd.createChar(1, humidity_icon,    'F');
 
   /* prints static text */
   lcd.setCursor(0, 0);                                          //set 1-st colum & 1-st row, first colum & row started at zero
-  lcd.write((uint8_t)0);                                        //print custom tempereture symbol
+  lcd.write(0);                                                 //print custom tempereture symbol
 
   lcd.setCursor(0, 1);                              
-  lcd.write((uint8_t)1);
+  lcd.write(1);
 }
 
 void loop()
@@ -108,15 +108,15 @@ void loop()
   /* prints dynamic temperature data */
   lcd.setCursor(1, 0);
   if   (temperature != HTU21D_ERROR) lcd.print(temperature);
-  else                               lcd.print("xxx");
+  else                               lcd.print(F("xxx"));
   lcd.write(DEGREE_SYMBOL);
   lcd.write(SPACE_SYMBOL);
 
   /* prints dynamic humidity data */
   lcd.setCursor(1, 1);
   if   (humidity != HTU21D_ERROR) lcd.print(humidity);
-  else                            lcd.print("xxx");
-  lcd.print("%");
+  else                            lcd.print(F("xxx"));
+  lcd.print(F("%"));
   lcd.write(SPACE_SYMBOL);
 
   delay(100000);
