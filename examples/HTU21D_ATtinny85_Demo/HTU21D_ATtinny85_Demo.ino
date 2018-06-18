@@ -6,22 +6,29 @@
   sourse code: https://github.com/enjoyneering/
 
   This sensor uses I2C bus to communicate, specials pins are required to interface
+  Board:                                    SDA                    SCL
+  Uno, Mini, Pro, ATmega168, ATmega328..... A4                     A5
+  Mega2560, Due............................ 20                     21
+  Leonardo, Micro, ATmega32U4.............. 2                      3
+  Digistump, Trinket, ATtiny85............. 0/physical pin no.5    2/physical pin no.7
+  Blue Pill, STM32F103xxxx boards.......... PB7*                   PB6*
+  ESP8266 ESP-01:.......................... GPIO0/D5               GPIO2/D3
+  NodeMCU 1.0, WeMos D1 Mini............... GPIO4/D2               GPIO5/D1
 
-  Connect chip to pins:    SDA        SCL
-  Uno, Mini, Pro:          A4         A5
-  Mega2560, Due:           20         21
-  Leonardo:                2          3
-  ATtiny85:                0(5)       2/A1(7)   (ATTinyCore  - https://github.com/SpenceKonde/ATTinyCore
-                                                 & TinyWireM - https://github.com/SpenceKonde/TinyWireM)
-  ESP8266 ESP-01:          GPIO0/D5   GPIO2/D3  (ESP8266Core - https://github.com/esp8266/Arduino)
-  NodeMCU 1.0:             GPIO4/D2   GPIO5/D1
-  WeMos D1 Mini:           GPIO4/D2   GPIO5/D1
+                                           *STM32F103xxxx pins B7/B7 are 5v tolerant, but bi-directional
+                                            logic level converter is recommended
 
-  GNU GPL license, all text above must be included in any redistribution, see link below for details
+  Frameworks & Libraries:
+  ATtiny Core           - https://github.com/SpenceKonde/ATTinyCore
+  ESP8266 Core          - https://github.com/esp8266/Arduino
+  ESP8266 I2C lib fixed - https://github.com/enjoyneering/ESP8266-I2C-Driver
+  STM32 Core            - https://github.com/rogerclarkmelbourne/Arduino_STM32
+
+  GNU GPL license, all text above must be included in any redistribution, see link below for details:
   - https://www.gnu.org/licenses/licenses.html
 */
 /***************************************************************************************************/
-#include <TinyWireM.h>         //https://github.com/SpenceKonde/TinyWireM
+#include <Wire.h>
 #include <HTU21D.h>
 #include <LiquidCrystal_I2C.h> //https://github.com/enjoyneering/LiquidCrystal_I2C
 
@@ -33,9 +40,9 @@
 
 float   humidity = 0;
 
-uint8_t humidity_icon[8]    = {0x04, 0x0E, 0x0E, 0x1F, 0x1F, 0x1F, 0x0E, 0x00};
-uint8_t plus_minus_icon[8]  = {0x00, 0x04, 0x0E, 0x04, 0x00, 0x0E, 0x00, 0x00};
-uint8_t temperature_icon[8] = {0x04, 0x0A, 0x0A, 0x0E, 0x0E, 0x1F, 0x1F, 0x0E};
+const uint8_t humidity_icon[8]    PROGMEM = {0x04, 0x0E, 0x0E, 0x1F, 0x1F, 0x1F, 0x0E, 0x00}; //PROGMEM saves variable to flash & keeps dynamic memory free
+const uint8_t plus_minus_icon[8]  PROGMEM = {0x00, 0x04, 0x0E, 0x04, 0x00, 0x0E, 0x00, 0x00};
+const uint8_t temperature_icon[8] PROGMEM = {0x04, 0x0A, 0x0A, 0x0E, 0x0E, 0x1F, 0x1F, 0x0E};
 
 /*
 HTU21D(resolution)
@@ -57,26 +64,27 @@ void setup()
   /* LCD connection check */ 
   while (lcd.begin(LCD_COLUMNS, LCD_ROWS) != true)          //20x4 display
   {
-    for (uint8_t i = 0; i > 3; i++)                         //3 blinks if PCF8574/LCD is not connected or lcd pins declaration is wrong
+    for (uint8_t i = 0; i > 5; i++)                         //3 blinks if PCF8574/LCD is not connected or lcd pins declaration is wrong
     {
       digitalWrite(led, HIGH);
       delay(300);
       digitalWrite(led, LOW);
       delay(300);
     }
-    delay(5000);
   }
 
   /* HTU21D connection check */
   while (myHTU21D.begin() != true)
   {
-    lcd.print("HTU21D error");
+    lcd.print(F("HTU21D error"));                           //(F()) saves string to flash & keeps dynamic memory free
     delay(5000);
   }
+
   lcd.clear();
 
-  lcd.print("HTU21D OK");
+  lcd.print(F("HTU21D OK"));
   delay(2000);
+
   lcd.clear();
 
   /* load custom symbol to CGRAM */
@@ -86,16 +94,16 @@ void setup()
 
   /* prints static text */
   lcd.setCursor(0, 0); 
-  lcd.write((uint8_t)1);                                    //print custom tempereture symbol
+  lcd.write(1);                                             //print custom tempereture symbol
 
   lcd.setCursor(0, 1);                                      //set 1-st colum & 2-nd row, first colum & row started at zero
-  lcd.write((uint8_t)0);                                    //print custom humidity symbol
+  lcd.write(0);                                             //print custom humidity symbol
 
   lcd.setCursor(0, 2);
-  lcd.print("Battery:");
+  lcd.print(F("Battery:"));
 
   lcd.setCursor(11, 2);
-  lcd.print("FW:");
+  lcd.print(F("FW:"));
 }
 
 
@@ -106,24 +114,24 @@ void loop()
   /* prints dynamic text & data */
   lcd.setCursor(1, 0);
   lcd.print(myHTU21D.readTemperature());
-  lcd.write((uint8_t)2);                                    //print custom plus/minus symbol
-  lcd.print("0.3");
+  lcd.write(2);                                             //print custom plus/minus symbol
+  lcd.print(F("0.3"));
   lcd.write(DEGREE_SYMBOL);                                 //print degree symbol from the LCD ROM
-  lcd.print("C ");
+  lcd.print(F("C "));
 
   lcd.setCursor(1, 1);
   lcd.print(humidity);
-  lcd.write((uint8_t)2);
-  lcd.print("2% ");
+  lcd.write(2);
+  lcd.print(F("2% "));
   
   lcd.setCursor(7, 2);
   if (myHTU21D.batteryStatus() == true)
   {
-    lcd.print("OK ");
+    lcd.print(F("OK "));
   }
   else
   {
-    lcd.print("Low");
+    lcd.print(F("Low"));
   }
 
   lcd.setCursor(14, 2);
