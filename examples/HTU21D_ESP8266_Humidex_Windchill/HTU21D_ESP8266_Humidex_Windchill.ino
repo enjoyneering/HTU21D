@@ -16,8 +16,8 @@
   ESP8266 ESP-01:.......................... GPIO0/D5               GPIO2/D3
   NodeMCU 1.0, WeMos D1 Mini............... GPIO4/D2               GPIO5/D1
 
-                                            *STM32F103xxxx pins B7/B7 are 5v tolerant, but bi-directional
-                                             logic level converter is recommended
+                                           *STM32F103xxxx pins B7/B7 are 5v tolerant, but bi-directional
+                                            logic level converter is recommended
 
   Frameworks & Libraries:
   ATtiny Core           - https://github.com/SpenceKonde/ATTinyCore
@@ -111,11 +111,11 @@ void setup()
   lcd.createChar(1, humidity_icon);
 
   /* prints static text */
-  lcd.setCursor(0, 0);                                                  //set 1-st colum & 1-st row, first colum & row started at zero
-  lcd.write(0);                                                         //print custom tempereture symbol
+  lcd.setCursor(0, 0);                                          //set 1-st colum & 1-st row, first colum & row started at zero
+  lcd.write(0);                                                 //print custom tempereture symbol
 
   lcd.setCursor(10, 0);
-  lcd.write(1);                                                         //print custom humidity symbol
+  lcd.write(1);                                                 //print custom humidity symbol
 
   lcd.setCursor(0, 1);
   lcd.print(F("Dewpoint :"));
@@ -258,7 +258,7 @@ float calculateWindchill(float temperature, float velocity)
   {
     float windchill = 13.12 + 0.6215 * temperature - 11.37 * pow(velocity, 0.16) + 0.3965 * temperature * pow(velocity, 0.16);
 
-    return (windchill);
+    return windchill;
   }
   return ERROR;
 }
@@ -272,30 +272,12 @@ float calculateWindchill(float temperature, float velocity)
 /**************************************************************************/
 void humidexDiscomfortIndex(float humidex)
 {
-  if ((humidex >= 21 ) && (humidex < 27))
-  {
-    Serial.println(F("Little discomfort."));
-  }
-  else if ((humidex >= 27) && (humidex < 35))
-  {
-    Serial.println(F("Noticeable discomfort."));
-  }
-  else if ((humidex >= 35) && (humidex < 40))
-  {
-    Serial.println(F("Great discomfort."));
-  }
-  else if ((humidex >= 40) && (humidex < 46))
-  {
-    Serial.println(F("Intense discomfort."));
-  }
-  else if ((humidex >= 46) && (humidex < 54))
-  {
-    Serial.println(F("Dangerous discomfort."));
-  }
-  else
-  {
-    Serial.println(F("Heat stroke warning."));
-  }
+  if      ((humidex >= 21 ) && (humidex < 27)) Serial.println(F("Little discomfort."));
+  else if ((humidex >= 27) && (humidex < 35))  Serial.println(F("Noticeable discomfort."));
+  else if ((humidex >= 35) && (humidex < 40))  Serial.println(F("Great discomfort."));
+  else if ((humidex >= 40) && (humidex < 46))  Serial.println(F("Intense discomfort."));
+  else if ((humidex >= 46) && (humidex < 54))  Serial.println(F("Dangerous discomfort."));
+  else                                         Serial.println(F("Heat stroke warning."));
 }
 
 /**************************************************************************/
@@ -308,24 +290,9 @@ void humidexDiscomfortIndex(float humidex)
 
 void windchillDiscomfortIndex(float windchill)
 {
-  if (windchill >= -24)
-  {
-    Serial.println(F("Low risk of frostbite."));
-  }
-  else if ((windchill < -24) && (windchill >= -39))
-  {
-    Serial.println(F("High risk of frostbite within 30 minutes of exposure."));
-  }
-  else if ((windchill < -39) && (windchill >= -47))
-  {
-    Serial.println(F("High risk of frostbite within 5 to 10 minutes of exposure."));
-  }
-  else if ((windchill < -47) && (windchill >= -54))
-  {
-    Serial.println(F("High risk of frostbite within 2 to 5 minutes of exposure."));
-  }
-  else
-  {
-    Serial.println(F("High risk of frostbite within 2 minutes of exposure."));
-  }
+  if      (windchill >= -24)                        Serial.println(F("Low risk of frostbite."));
+  else if ((windchill < -24) && (windchill >= -39)) Serial.println(F("High risk of frostbite within 30 minutes of exposure."));
+  else if ((windchill < -39) && (windchill >= -47)) Serial.println(F("High risk of frostbite within 5 to 10 minutes of exposure."));
+  else if ((windchill < -47) && (windchill >= -54)) Serial.println(F("High risk of frostbite within 2 to 5 minutes of exposure."));
+  else                                              Serial.println(F("High risk of frostbite within 2 minutes of exposure."));
 }
