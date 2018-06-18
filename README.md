@@ -4,11 +4,17 @@ This is an Arduino library for SHT21, HTU21D & Si70xx Digital Humidity and Tempe
 
 Supports all sensors features:
 
-- read Humidity for SHT21, HTU21D or Compensated Humidity for Si70xx
-- calculate Compensated Humidity for SHT21, HTU21D
-- read Temperature for SHT21, HTU21D, Si70xx or retrive Temperature value after RH measurement for Si70xx
-- soft Reset
-- check Battery Status
+- read humidity for SHT21, HTU21D or compensated humidity for Si70xx
+- calculate compensated humidity for SHT21, HTU21D
+- read temperature for SHT21, HTU21D, Si70xx or retrive temperature value after RH measurement for Si70xx
+- soft reset
+- check battery status
 - turn ON/OFF build-in Heater
 - read FW version
 - read sensor ID
+
+Tested on:
+
+- Arduino AVR
+- Arduino ESP8266
+- Arduino STM32
