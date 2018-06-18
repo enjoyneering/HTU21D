@@ -274,27 +274,27 @@ void humidexDiscomfortIndex(float humidex)
 {
   if ((humidex >= 21 ) && (humidex < 27))
   {
-    Serial.println("Little discomfort.");
+    Serial.println(F("Little discomfort."));
   }
   else if ((humidex >= 27) && (humidex < 35))
   {
-    Serial.println("Noticeable discomfort.");
+    Serial.println(F("Noticeable discomfort."));
   }
   else if ((humidex >= 35) && (humidex < 40))
   {
-    Serial.println("Great discomfort.");
+    Serial.println(F("Great discomfort."));
   }
   else if ((humidex >= 40) && (humidex < 46))
   {
-    Serial.println("Intense discomfort.");
+    Serial.println(F("Intense discomfort."));
   }
   else if ((humidex >= 46) && (humidex < 54))
   {
-    Serial.println("Dangerous discomfort.");
+    Serial.println(F("Dangerous discomfort."));
   }
   else
   {
-    Serial.println("Heat stroke warning.");
+    Serial.println(F("Heat stroke warning."));
   }
 }
 
@@ -310,22 +310,22 @@ void windchillDiscomfortIndex(float windchill)
 {
   if (windchill >= -24)
   {
-    Serial.println("Low risk of frostbite.");
+    Serial.println(F("Low risk of frostbite."));
   }
   else if ((windchill < -24) && (windchill >= -39))
   {
-    Serial.println("High risk of frostbite within 30 minutes of exposure.");
+    Serial.println(F("High risk of frostbite within 30 minutes of exposure."));
   }
   else if ((windchill < -39) && (windchill >= -47))
   {
-    Serial.println("High risk of frostbite within 5 to 10 minutes of exposure.");
+    Serial.println(F("High risk of frostbite within 5 to 10 minutes of exposure."));
   }
   else if ((windchill < -47) && (windchill >= -54))
   {
-    Serial.println("High risk of frostbite within 2 to 5 minutes of exposure.");
+    Serial.println(F("High risk of frostbite within 2 to 5 minutes of exposure."));
   }
   else
   {
-    Serial.println("High risk of frostbite within 2 minutes of exposure.");
+    Serial.println(F("High risk of frostbite within 2 minutes of exposure."));
   }
 }
