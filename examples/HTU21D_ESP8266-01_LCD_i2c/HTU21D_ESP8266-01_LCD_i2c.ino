@@ -99,8 +99,8 @@ void setup()
   lcd.clear();
 
   /* load custom symbol to CGRAM */
-  lcd.createChar(0, temperature_icon, 'F');                     //'F' - variable stored in flash
-  lcd.createChar(1, humidity_icon,    'F');
+  lcd.createChar(0, temperature_icon);                          //variable stored in flash
+  lcd.createChar(1, humidity_icon);
 
   /* prints static text */
   lcd.setCursor(0, 0);                                          //set 1-st colum & 1-st row
