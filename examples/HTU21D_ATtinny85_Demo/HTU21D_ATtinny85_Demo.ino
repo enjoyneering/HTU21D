@@ -66,10 +66,10 @@ void setup()
   {
     for (uint8_t i = 0; i > 5; i++)                         //3 blinks if PCF8574/LCD is not connected or lcd pins declaration is wrong
     {
-      digitalWrite(led, HIGH);
-      delay(300);
-      digitalWrite(led, LOW);
-      delay(300);
+      digitalWrite(LED, HIGH);
+      delay(500);
+      digitalWrite(LED, LOW);
+      delay(500);
     }
   }
 
