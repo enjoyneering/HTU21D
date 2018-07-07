@@ -15,8 +15,8 @@
   ESP8266 ESP-01:.......................... GPIO0/D5               GPIO2/D3
   NodeMCU 1.0, WeMos D1 Mini............... GPIO4/D2               GPIO5/D1
 
-                                           *STM32F103xxxx pins B7/B7 are 5v tolerant, but bi-directional
-                                            logic level converter is recommended
+                                           *STM32F103xxxx pins PB6/PB7 are 5v tolerant, but
+                                            bi-directional logic level converter is recommended
 
   Frameworks & Libraries:
   ATtiny Core           - https://github.com/SpenceKonde/ATTinyCore
@@ -81,29 +81,28 @@
 
 #define HTU21D_SOFT_RESET_DELAY      15        //in milliseconds
 
-#define HTU21D_POLLING_LIMIT         8         //i2c retry limit
 #define HTU21D_FORCE_READ_TEMP       0xFE      //force to read temperature, see https://github.com/enjoyneering/HTU21D/pull/3
 #define HTU21D_ERROR                 0xFF      //returns 255, if CRC8 or communication error is occurred
 
 typedef enum
 {
-  HTU21D_RES_RH12_TEMP14 = 0x00,               //temperature: 14-Bit & humidity: 12-Bit, default resolution
-  HTU21D_RES_RH8_TEMP12  = 0x01,               //temperature: 12-Bit & humidity: 8-Bit
-  HTU21D_RES_RH10_TEMP13 = 0x80,               //temperature: 13-Bit & humidity: 10-Bit
-  HTU21D_RES_RH11_TEMP11 = 0x81                //temperature: 11-Bit & humidity: 11-Bit
+  HTU21D_RES_RH12_TEMP14 = 0x00,               //resolution, temperature: 14-Bit & humidity: 12-Bit
+  HTU21D_RES_RH8_TEMP12  = 0x01,               //resolution, temperature: 12-Bit & humidity: 8-Bit
+  HTU21D_RES_RH10_TEMP13 = 0x80,               //resolution, temperature: 13-Bit & humidity: 10-Bit
+  HTU21D_RES_RH11_TEMP11 = 0x81                //resolution, temperature: 11-Bit & humidity: 11-Bit
 }
 HTU21D_RESOLUTION;
 
 typedef enum
 {
-  HTU21D_TRIGGER_HUMD_MEASURE_HOLD   = 0xE5,   //humidity measurement with hold master, default settings
+  HTU21D_TRIGGER_HUMD_MEASURE_HOLD   = 0xE5,   //humidity measurement with hold master
   HTU21D_TRIGGER_HUMD_MEASURE_NOHOLD = 0xF5    //temperature measurement with no hold master
 }
 HTU21D_HUMD_OPERATION_MODE;
 
 typedef enum
 {
-  HTU21D_TRIGGER_TEMP_MEASURE_HOLD     = 0xE3, //temperature measurement with hold master, default settings
+  HTU21D_TRIGGER_TEMP_MEASURE_HOLD     = 0xE3, //temperature measurement with hold master
   HTU21D_TRIGGER_TEMP_MEASURE_NOHOLD   = 0xF3, //temperature measurement with no hold master
   SI70xx_TEMP_READ_AFTER_RH_MEASURMENT = 0xE0  //read temperature value from previous RH measurement, for Si7021 only
 }
@@ -115,6 +114,7 @@ typedef enum
   HTU21D_OFF = 0xFB                            //heater OFF
 }
 HTU21D_HEATER_SWITCH;
+
 
 class HTU21D
 {
