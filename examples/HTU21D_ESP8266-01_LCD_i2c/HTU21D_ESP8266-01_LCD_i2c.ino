@@ -70,6 +70,7 @@ void setup()
   WiFi.forceSleepBegin();                                       //disable AP & station by calling "WiFi.mode(WIFI_OFF)" & put modem to sleep
 
   Serial.begin(115200);
+  Serial.swap();                                                //remap serial pins GPIO1/D2/UART0TXD & GPIO3/D7/UART0RXD to GPIO15/UART0RTS & GPIO13/UART0CTS
   
   /* LCD connection check */  
   while (lcd.begin(LCD_COLUMNS, LCD_ROWS, LCD_5x8DOTS) != true) //20x4 display with 5x8 pixels size
