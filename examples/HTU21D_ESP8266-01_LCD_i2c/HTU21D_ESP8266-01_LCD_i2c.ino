@@ -73,10 +73,12 @@ void setup()
   Serial.swap();                                                //remap serial pins GPIO1/D2/UART0TXD & GPIO3/D7/UART0RXD to GPIO15/UART0RTS & GPIO13/UART0CTS
   
   /* LCD connection check */  
-  while (lcd.begin(LCD_COLUMNS, LCD_ROWS, LCD_5x8DOTS) != true) //20x4 display with 5x8 pixels size
+  while (lcd.begin(LCD_COLUMNS, LCD_ROWS, LCD_5x8DOTS) != true) //20 colums, 4 rows, 5x8 pixels char size
   {
-    Serial.println(F("PCF8574 is not connected or lcd pins declaration is wrong. Only pins numbers: 4,5,6,16,11,12,13,14 are legal.")); //(F()) saves string to flash & keeps dynamic memory free
-    delay(5000);
+    digitalWrite(LED, LOW);
+    delay(500);
+    digitalWrite(LED, HIGH);
+    delay(500);
   }
 
   lcd.print(F("PCF8574 is OK"));
