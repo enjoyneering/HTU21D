@@ -48,10 +48,10 @@ const uint8_t temperature_icon[8] PROGMEM = {0x04, 0x0A, 0x0A, 0x0E, 0x0E, 0x1F,
 HTU21D(resolution)
 
 resolution:
-HTU21D_RES_RH12_TEMP14 - RH: 12Bit, Temperature: 14Bit, by default
-HTU21D_RES_RH8_TEMP12  - RH: 8Bit,  Temperature: 12Bit
-HTU21D_RES_RH10_TEMP13 - RH: 10Bit, Temperature: 13Bit
-HTU21D_RES_RH11_TEMP11 - RH: 11Bit, Temperature: 11Bit
+HTU21D_RES_RH12_TEMP14 - RH: 12-Bit, Temperature: 14-Bit, by default
+HTU21D_RES_RH8_TEMP12  - RH: 8-Bit,  Temperature: 12-Bit
+HTU21D_RES_RH10_TEMP13 - RH: 10-Bit, Temperature: 13-Bit
+HTU21D_RES_RH11_TEMP11 - RH: 11-Bit, Temperature: 11-Bit
 */
 HTU21D            myHTU21D(HTU21D_RES_RH12_TEMP14);
 LiquidCrystal_I2C lcd(PCF8574_ADDR_A21_A11_A01, 4, 5, 6, 16, 11, 12, 13, 14, POSITIVE);
@@ -62,15 +62,12 @@ void setup()
   pinMode(LED, OUTPUT);
 
   /* LCD connection check */ 
-  while (lcd.begin(LCD_COLUMNS, LCD_ROWS) != true)          //20x4 display
+  while (lcd.begin(LCD_COLUMNS, LCD_ROWS) != true)          //20 colums, 4 rows
   {
-    for (uint8_t i = 0; i > 5; i++)                         //3 blinks if PCF8574/LCD is not connected or lcd pins declaration is wrong
-    {
-      digitalWrite(LED, HIGH);
-      delay(500);
-      digitalWrite(LED, LOW);
-      delay(500);
-    }
+    digitalWrite(LED, HIGH);
+    delay(500);
+    digitalWrite(LED, LOW);
+    delay(500);
   }
 
   /* HTU21D connection check */
