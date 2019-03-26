@@ -27,6 +27,6 @@ Tested on:
 [stars]:         https://img.shields.io/github/stars/enjoyneering/HTU21D.svg
 [stargazers]:    https://github.com/enjoyneering/HTU21D/stargazers
 [GitHub issues]: https://img.shields.io/github/issues/enjoyneering/HTU21D.svg
-[issues]:        https://GitHub.com/enjoyneering/HTU21D/issues/
+[issues]:        https://github.com/enjoyneering/HTU21D/issues/
 
 **Sensor returns 255, if there is a CRC8 mismatch or a communication error has occurred
