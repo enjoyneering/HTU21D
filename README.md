@@ -21,8 +21,8 @@ Tested on:
 - Arduino ESP8266
 - Arduino STM32
 
-[license]:       https://img.shields.io/badge/License-GPLv3-blue.svg
-[license-badge]: https://img.shields.io/aur/license/yaourt.svg
+[license-badge]: https://img.shields.io/badge/License-GPLv3-blue.svg
+[license]:       https://choosealicense.com/licenses/gpl-3.0/
 [version]:       https://img.shields.io/badge/Version-1.2.1-green.svg
 [stars]:         https://img.shields.io/github/stars/enjoyneering/HTU21D.svg
 [stargazers]:    https://github.com/enjoyneering/HTU21D/stargazers
