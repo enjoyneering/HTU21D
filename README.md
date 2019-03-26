@@ -1,4 +1,4 @@
-[![license-badge][]][license] ![version] [![stars][]][stargazers]  [![GitHub issues][]][issues]
+[![license-badge][]][license] ![version] [![stars][]][stargazers] [![GitHub issues][]][issues]
 
 # HTU21D
 
