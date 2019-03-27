@@ -31,4 +31,4 @@ Tested on:
 [github-issues]: https://img.shields.io/github/issues/enjoyneering/HTU21D.svg
 [issues]:        https://github.com/enjoyneering/HTU21D/issues/
 
-**Sensor returns 255, if there is a CRC8 mismatch or a communication error has occurred
+**Library returns 255, if there is a CRC8 mismatch or a communication error has occurred
