@@ -246,7 +246,7 @@ float HTU21D::readHumidity(HTU21D_HUMD_OPERATION_MODE sensorOperationMode)
   #if defined(_VARIANT_ARDUINO_STM32_)
   Wire.requestFrom(HTU21D_ADDRESS, 3);
   #else
-  Wire.requestFrom(HTU21D_ADDRESS, 3, true);                   //true, stop message after transmission & releas the I2C bus
+  Wire.requestFrom(static_cast<uint16_t>(HTU21D_ADDRESS), static_cast<size_t>(3), true);                   //true, stop message after transmission & releas the I2C bus
   #endif
   if (Wire.available() != 3) return HTU21D_ERROR;              //check rxBuffer & error handler, collision on the i2c bus
 
@@ -341,7 +341,7 @@ float HTU21D::readTemperature(HTU21D_TEMP_OPERATION_MODE sensorOperationMode)
   #if defined(_VARIANT_ARDUINO_STM32_)
   Wire.requestFrom(HTU21D_ADDRESS, qntRequest);
   #else
-  Wire.requestFrom(HTU21D_ADDRESS, qntRequest, true);                                         //true, stop message after transmission & releas the I2C bus
+  Wire.requestFrom(static_cast<uint16_t>(HTU21D_ADDRESS), static_cast<size_t>(qntRequest), true);                                         //true, stop message after transmission & releas the I2C bus
   #endif
   if (Wire.available() != qntRequest) return HTU21D_ERROR;                                    //check rxBuffer & error handler, collision on the i2c bus
 
@@ -428,7 +428,7 @@ uint16_t HTU21D::readDeviceID(void)
   #if defined(_VARIANT_ARDUINO_STM32_)
   Wire.requestFrom(HTU21D_ADDRESS, 3);
   #else
-  Wire.requestFrom(HTU21D_ADDRESS, 3, true);                //true, stop message after transmission & releas the I2C bus
+  Wire.requestFrom(static_cast<uint16_t>(HTU21D_ADDRESS), static_cast<size_t>(3), true);                //true, stop message after transmission & releas the I2C bus
   #endif
 
   #if ARDUINO >= 100
@@ -500,7 +500,7 @@ uint8_t HTU21D::readFirmwareVersion(void)
   #if defined(_VARIANT_ARDUINO_STM32_)
   Wire.requestFrom(HTU21D_ADDRESS, 1);
   #else
-  Wire.requestFrom(HTU21D_ADDRESS, 1, true); //true, stop message after transmission & releas the I2C bus
+  Wire.requestFrom(static_cast<uint16_t>(HTU21D_ADDRESS), static_cast<size_t>(1), true); //true, stop message after transmission & releas the I2C bus
   #endif
 
   #if ARDUINO >= 100
@@ -567,7 +567,7 @@ uint8_t HTU21D::read8(uint8_t reg)
   #if defined(_VARIANT_ARDUINO_STM32_)
   Wire.requestFrom(HTU21D_ADDRESS, 1);
   #else
-  Wire.requestFrom(HTU21D_ADDRESS, 1, true);                //true, stop message after transmission & releas the I2C bus
+  Wire.requestFrom(static_cast<uint16_t>(HTU21D_ADDRESS), static_cast<size_t>(1), true);                //true, stop message after transmission & releas the I2C bus
   #endif
   if (Wire.available() != 1) return HTU21D_ERROR;           //check rxBuffer & error handler, collision on the i2c bus
 
