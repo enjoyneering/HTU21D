@@ -188,6 +188,33 @@ void HTU21D::setHeater(HTU21D_HEATER_SWITCH heaterSwitch)
 
 /**************************************************************************/
 /*
+    setHeaterLevel()
+
+    Set the Heater level (between 3.09 mA and 94.20 mA, see datasheet)
+
+    NOTE:
+    - prolonged exposure to high humidity will result gradual upward drift
+      of the RH reading, the heater is used to drive off condensation &
+      reverse drift effect.
+    - heater consumtion is 3.09mA - 94.20mA @ 3.3v.
+*/
+/**************************************************************************/
+void HTU21D::setHeaterLevel(byte heaterLevel)
+{
+  uint8_t heaterRegisterData = 0;
+
+  heaterRegisterData = read8(HTU21D_HEATER_REGISTER_READ);
+  
+  heaterLevel &= 0x0F;
+  heaterRegisterData &= 0xF0;
+  heaterRegisterData |= heaterLevel;
+  
+  write8(HTU21D_HEATER_REGISTER_WRITE, heaterRegisterData);
+}
+
+
+/**************************************************************************/
+/*
     readHumidity()
 
     Reads Humidity, %
