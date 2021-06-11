@@ -1,4 +1,4 @@
-[![license-badge][]][license] ![version] [![stars][]][stargazers] [![hit-count][]][count] [![github-issues][]][issues]
+[![license-badge][]][license] ![version] [![stars][]][stargazers] ![hit-count] [![github-issues][]][issues]
 
 # HTU21D
 
@@ -25,9 +25,8 @@ Tested on:
 [license]:       https://choosealicense.com/licenses/gpl-3.0/
 [version]:       https://img.shields.io/badge/Version-1.2.1-green.svg
 [stars]:         https://img.shields.io/github/stars/enjoyneering/HTU21D.svg
-[hit-count]:     http://hits.dwyl.io/enjoyneering/HTU21D/badges.svg
-[count]:         http://hits.dwyl.io/enjoyneering/HTU21D/badges
 [stargazers]:    https://github.com/enjoyneering/HTU21D/stargazers
+[hit-count]:     https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Fenjoyneering%2FHTU21D&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false
 [github-issues]: https://img.shields.io/github/issues/enjoyneering/HTU21D.svg
 [issues]:        https://github.com/enjoyneering/HTU21D/issues/
 
