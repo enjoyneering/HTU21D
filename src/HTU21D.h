@@ -133,6 +133,7 @@ class HTU21D
    void     softReset(void);
    bool     batteryStatus(void);
    void     setHeater(HTU21D_HEATER_SWITCH heaterSwitch);
+   void     setHeaterLevel(byte heaterLevel);
    uint16_t readDeviceID(void);
    uint8_t  readFirmwareVersion(void);
 
