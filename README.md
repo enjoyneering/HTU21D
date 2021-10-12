@@ -1,5 +1,7 @@
 [![license-badge][]][license] ![version] [![stars][]][stargazers] ![hit-count] [![github-issues][]][issues]
 
+<h1>This library is no longer supported. New library here - https://github.com/enjoyneering/HTU2xD_SHT2x_Si70xx<h1>
+
 # HTU21D
 
 This is an Arduino library for SHT21, HTU21D & Si70xx Digital Humidity and Temperature Sensor
